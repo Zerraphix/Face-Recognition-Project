@@ -2,6 +2,9 @@ from flask import request
 # https://flask-restx.readthedocs.io/en/latest/swagger.html Bedre visuel api dokumentation
 # https://flask-restx.readthedocs.io/en/latest/scaling.html#multiple-namespaces Deler dem op i flere filer alligvel og samler dem i app.py
 from flask_restx import Namespace, Resource, fields
+
+
+from services.security_service import hash_pass
 from database.user_db import get_all_users, get_user_by_id, create_user, delete_user
 
 
@@ -54,11 +57,13 @@ class UserList(Resource):
                 api_user.abort(400, f"Missing field: {field}")
 
         try:
+            password_hash = hash_pass(data["password_hash"])
+
             new_user = create_user(
                 data["first_name"],
                 data["last_name"],
                 data["email"],
-                data["password_hash"],
+                password_hash,
                 data["role_id"]
             )
 
