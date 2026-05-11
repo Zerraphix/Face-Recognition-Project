@@ -41,3 +41,33 @@ def create_tables():
             conn.close()
 
 
+def seed_data():
+    conn = None
+
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        roles = [
+            ("Admin",),
+            ("Employee",),
+            ("Guest",)
+        ]
+
+        cur.executemany("""
+            INSERT OR IGNORE INTO role (role_name)
+            VALUES (?)
+        """, roles)
+
+        conn.commit()
+        print("Roles seeded successfully")
+
+    except Exception as e:
+        print(f"Error seeding roles: {e}")
+
+        if conn:
+            conn.rollback()
+
+    finally:
+        if conn:
+            conn.close()
