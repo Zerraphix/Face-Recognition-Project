@@ -17,7 +17,12 @@ face_model = api_face.model("Face", {
     "created_at": fields.String,
     "face_encoding": fields.String,
     "face_picture_path": fields.String,
-    "is_active": fields.Boolean
+    "is_active": fields.Boolean,
+    "first_name": fields.String,
+    "last_name": fields.String,
+    "email": fields.String,
+    "role_id": fields.Integer,
+    "role_name": fields.String
 })
 
 

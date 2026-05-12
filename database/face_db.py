@@ -12,11 +12,18 @@ def get_all_faces():
             SELECT 
                 facedata.face_id,
                 facedata.user_id,
+                user.first_name,
+                user.last_name,
+                user.email,
+                user.role_id,
+                role.role_name,
                 facedata.face_encoding,
                 facedata.face_picture_path,
                 facedata.created_at,
                 facedata.is_active
             FROM facedata
+            INNER JOIN user ON facedata.user_id = user.user_id
+            INNER JOIN role ON user.role_id = role.role_id
             ORDER BY facedata.created_at DESC
         """)
 
@@ -39,11 +46,18 @@ def get_face_by_id(face_id):
             SELECT 
                 facedata.face_id,
                 facedata.user_id,
+                user.first_name,
+                user.last_name,
+                user.email,
+                user.role_id,
+                role.role_name,
                 facedata.face_encoding,
                 facedata.face_picture_path,
                 facedata.created_at,
                 facedata.is_active
             FROM facedata
+            INNER JOIN user ON facedata.user_id = user.user_id
+            INNER JOIN role ON user.role_id = role.role_id
             WHERE facedata.face_id = ?
         """, (face_id,))
 

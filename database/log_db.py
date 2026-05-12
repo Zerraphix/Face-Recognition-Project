@@ -17,8 +17,15 @@ def get_all_logs():
                 logging.timestamp,
                 logging.access_granted,
                 logging.result,
-                logging.security_picture_path
+                logging.security_picture_path,
+                user.first_name,
+                user.last_name,
+                user.email,
+                user.role_id,
+                role.role_name
             FROM logging
+            INNER JOIN user ON logging.user_id = user.user_id
+            INNER JOIN role ON user.role_id = role.role_id
             ORDER BY logging.timestamp DESC
         """)
 
@@ -46,8 +53,15 @@ def get_log_by_id(log_id):
                 logging.timestamp,
                 logging.access_granted,
                 logging.result,
-                logging.security_picture_path
+                logging.security_picture_path,
+                user.first_name,
+                user.last_name,
+                user.email,
+                user.role_id,
+                role.role_name
             FROM logging
+            INNER JOIN user ON logging.user_id = user.user_id
+            INNER JOIN role ON user.role_id = role.role_id
             WHERE logging.log_id = ?
         """, (log_id,))
 

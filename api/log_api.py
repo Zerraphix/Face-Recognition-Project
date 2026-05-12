@@ -16,7 +16,12 @@ log_model = api_log.model("Log", {
     "timestamp": fields.String,
     "access_granted": fields.Boolean,
     "result": fields.String,
-    "security_picture_path": fields.String
+    "security_picture_path": fields.String,
+    "first_name": fields.String,
+    "last_name": fields.String,
+    "email": fields.String,
+    "role_id": fields.Integer,
+    "role_name": fields.String
 })
 
 

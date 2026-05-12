@@ -12,10 +12,17 @@ def get_all_pins():
             SELECT 
                 pin.pin_id,
                 pin.user_id,
+                user.first_name,
+                user.last_name,
+                user.email,
+                user.role_id,
+                role.role_name,
                 pin.pin_code_hash,
                 pin.expiration_time,
                 pin.is_active
             FROM pin
+            INNER JOIN user ON pin.user_id = user.user_id
+            INNER JOIN role ON user.role_id = role.role_id
             ORDER BY pin.expiration_time DESC
         """)
 
@@ -39,10 +46,17 @@ def get_pin_by_id(pin_id):
             SELECT 
                 pin.pin_id,
                 pin.user_id,
+                user.first_name,
+                user.last_name,
+                user.email,
+                user.role_id,
+                role.role_name,
                 pin.pin_code_hash,
                 pin.expiration_time,
                 pin.is_active
             FROM pin
+            INNER JOIN user ON pin.user_id = user.user_id
+            INNER JOIN role ON user.role_id = role.role_id
             WHERE pin.pin_id = ?
         """, (pin_id,))
 

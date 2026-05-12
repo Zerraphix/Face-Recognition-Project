@@ -14,7 +14,12 @@ pin_model = api_pin.model("Pin", {
     "user_id": fields.Integer,
     "pin_code_hash": fields.String,
     "expires_at": fields.String,
-    "is_active": fields.Boolean
+    "is_active": fields.Boolean,
+    "first_name": fields.String,
+    "last_name": fields.String,
+    "email": fields.String,
+    "role_id": fields.Integer,
+    "role_name": fields.String
 })
 
 
