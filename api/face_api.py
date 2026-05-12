@@ -1,7 +1,6 @@
 from flask import request
 # https://flask-restx.readthedocs.io/en/latest/parsing.html Brugt til formdata parsing, især til fil uploads
 from flask_restx import Namespace, Resource, fields, reqparse
-from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
 
 from services.file_upload import save_uploaded_file
@@ -30,7 +29,8 @@ create_face_parser = reqparse.RequestParser()
 create_face_parser.add_argument("user_id", type=int, required=True, location="form")
 create_face_parser.add_argument("face_encoding", type=str, required=True, location="form")
 create_face_parser.add_argument("is_active", type=bool, required=True, location="form")
-create_face_parser.add_argument("file", type=FileStorage, required=True, location="files")
+create_face_parser.add_argument("face_picture_path", type=str, required=False, location="files")
+create_face_parser.add_argument("file", type=FileStorage, required=False, location="files")
 
 @api_face.route("")
 class FaceList(Resource):
