@@ -1,7 +1,10 @@
 from flask import request
-from flask_restx import Namespace, Resource, fields
+from flask_restx import Namespace, Resource, fields, reqparse
+from werkzeug.datastructures import FileStorage
+from datetime import datetime
 
 
+from services.file_upload import save_uploaded_file
 from database.log_db import get_all_logs, get_log_by_id, create_log, delete_log
 
 
@@ -24,15 +27,15 @@ log_model = api_log.model("Log", {
     "role_name": fields.String
 })
 
+create_log_parser = reqparse.RequestParser()
+create_log_parser.add_argument("user_id", type=int, required=True, location="form")
+create_log_parser.add_argument("device", type=str, required=True, location="form")
+create_log_parser.add_argument("used_method", type=str, required=True, location="form")
+create_log_parser.add_argument("access_granted", type=bool, required=True, location="form")
+create_log_parser.add_argument("result", type=str, required=True, location="form")
+create_log_parser.add_argument("security_picture_path", type=str, required=False, location="form")
+create_log_parser.add_argument("file", type=FileStorage, required=False, location="files")
 
-create_log_model = api_log.model("CreateLog", {
-    "user_id": fields.Integer(required=True, example=1),
-    "device": fields.String(required=True, example="Test Device"),
-    "used_method": fields.String(required=True, example="Test Method"),
-    "access_granted": fields.Boolean(required=True, example=True),
-    "result": fields.String(required=True, example="Test Result"),
-    "security_picture_path": fields.String(required=True, example="/path/to/security/picture.jpg")
-})
 
 
 @api_log.route("")
@@ -43,38 +46,45 @@ class LogList(Resource):
         return get_all_logs()
 
 
-    @api_log.expect(create_log_model)
+    @api_log.expect(create_log_parser)
     @api_log.marshal_with(log_model, code=201)
     def post(self):
-        data = request.get_json()
+        args = create_log_parser.parse_args()
 
-        required_fields = [
-            "user_id",
-            "device",
-            "used_method",
-            "access_granted",
-            "result",
-            "security_picture_path"
-        ]
+        user_id = args["user_id"]
+        device = args["device"]
+        used_method = args["used_method"]
+        access_granted = args["access_granted"]
+        result = args["result"]
+        security_picture_path = args.get("security_picture_path")
+        file = args["file"]
 
-        for field in required_fields:
-            if field not in data:
-                api_log.abort(400, f"Missing field: {field}")
-
+        
+        filename = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".jpg"
         try:
+            if file:
+                db_path = save_uploaded_file(
+                file=file,
+                upload_folder="uploads/logs",
+                preferred_name=filename
+            )
+            else:
+                db_path = security_picture_path
+            
+
             new_log = create_log(
-                data["user_id"],
-                data["device"],
-                data["used_method"],
-                data["access_granted"],
-                data["result"],
-                data["security_picture_path"]
+                user_id,
+                device,
+                used_method,
+                access_granted,
+                result,
+                db_path
             )
 
             return new_log, 201
 
         except Exception as e:
-            api_log.abort(400, str(e))
+            api_log.abort(400, str(e))  
 
 
 @api_log.route("/<int:log_id>")
