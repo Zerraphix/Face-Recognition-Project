@@ -56,8 +56,6 @@ def get_pin_by_id(pin_id):
     finally:
         if conn:
             conn.close()
-
-        row = cur.fetchone()
                 
 
 

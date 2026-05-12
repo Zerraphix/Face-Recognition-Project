@@ -58,10 +58,6 @@ def get_face_by_id(face_id):
         if conn:
             conn.close()
 
-
-        rows = cur.fetchall()
-        return [dict(row) for row in rows]
-
                 
 
 
