@@ -65,7 +65,7 @@ def get_face_by_id(face_id):
                 
 
 
-def create_face(user_id, face_encoding, face_picture_path):
+def create_face(user_id, face_encoding, face_picture_path, is_active):
     conn = None
 
     try:
@@ -76,13 +76,15 @@ def create_face(user_id, face_encoding, face_picture_path):
             INSERT INTO facedata (
                 user_id,
                 face_encoding,
-                face_picture_path
+                face_picture_path,
+                is_active
             )
-            VALUES (?, ?, ?)
+            VALUES (?, ?, ?, ?)
         """, (
             user_id,
             face_encoding,
-            face_picture_path
+            face_picture_path,
+            is_active
         ))
 
         conn.commit()
