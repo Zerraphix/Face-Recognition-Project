@@ -23,10 +23,10 @@ lcd = characterlcd.Character_LCD_Mono(
 )
 
 
-def skriv_tekst(tekst):
+def write_text(text):
     lcd.clear()
-    lcd.message = tekst
+    lcd.message = text
 
 
-def ryd_lcd():
+def clear_lcd():
     lcd.clear()

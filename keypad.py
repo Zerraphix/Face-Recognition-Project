@@ -23,7 +23,7 @@ def setup_keypad():
         GPIO.output(col, GPIO.HIGH)
 
 
-def hent_tast():
+def get_number():
 
     for col in range(4):
 
@@ -47,7 +47,3 @@ def hent_tast():
         GPIO.output(COLS[col], GPIO.HIGH)
 
     return None
-
-
-def ryd_gpio():
-    GPIO.cleanup()
