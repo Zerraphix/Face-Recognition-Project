@@ -119,4 +119,9 @@ class UserLogin(Resource):
         if not verify_pass(data["password"], user["password_hash"]):
             api_user.abort(401, "Invalid password")
 
-        return {"message": "Login successful"}, 200
+        return {
+            "message": "Login successful",
+            "user_id": user["user_id"],
+            "email": user["email"],
+            "role_name": user["role_name"]
+        }, 200
