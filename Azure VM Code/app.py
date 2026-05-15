@@ -370,6 +370,97 @@ def admin_delete_log(log_id):
 
     return redirect(url_for("admin_logs"))
 
+# Admin face routes
+@app.route("/admin/faces")
+@admin_required
+def admin_faces():
+    faces = []
+
+    try:
+        response = requests.get(
+            f"{API_BASE_URL}/faces",
+            timeout=5
+        )
+
+        if response.status_code == 200:
+            faces = response.json()
+        else:
+            flash("Kunne ikke hente faces fra API")
+
+    except requests.exceptions.RequestException:
+        flash("Kunne ikke forbinde til API-serveren")
+
+    return render_template(
+        "admin_faces.html",
+        faces=faces
+    )
+
+
+@app.route("/admin/faces/create", methods=["POST"])
+@admin_required
+def admin_create_face():
+    user_id = request.form.get("user_id")
+    face_encoding = request.form.get("face_encoding")
+    is_active = request.form.get("is_active") == "true"
+    face_picture_path = request.files.get("face_picture_path")
+    face_picture = request.files.get("face_picture")
+
+
+    try:
+        data = {
+            "user_id": user_id,
+            "face_encoding": face_encoding,
+            "is_active": is_active,
+            "face_picture_path": face_picture_path
+        }
+
+        files = None
+
+        if face_picture and face_picture.filename:
+            files = {
+                "file": (
+                    face_picture.filename,
+                    face_picture.stream,
+                    face_picture.mimetype
+                )
+            }
+
+        response = requests.post(
+            f"{API_BASE_URL}/faces",
+            data=data,
+            files=files,
+            timeout=5
+        )
+
+        if response.status_code == 201:
+            flash("Face blev oprettet")
+        else:
+            flash(f"Face kunne ikke oprettes: {response.text}")
+
+    except requests.exceptions.RequestException as e:
+        flash(f"Kunne ikke forbinde til API-serveren: {e}")
+
+    return redirect(url_for("admin_faces"))
+
+@app.route("/admin/faces/delete/<int:face_id>", methods=["POST"])
+@admin_required
+def admin_delete_face(face_id):
+    try:
+        response = requests.delete(
+            f"{API_BASE_URL}/faces/{face_id}",
+            timeout=5
+        )
+
+        if response.status_code == 200:
+            flash("Face blev slettet")
+        else:
+            flash(f"Face kunne ikke slettes: {response.text}")
+
+    except requests.exceptions.RequestException:
+        flash("Kunne ikke forbinde til API-serveren")
+
+    return redirect(url_for("admin_faces"))
+
 # Admin pin routes
 @app.route("/admin/pins")
 @admin_required

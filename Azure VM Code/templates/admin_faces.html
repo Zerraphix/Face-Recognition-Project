@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="da">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Faces</title>
+</head>
+
+<body>
+
+    <h1>Admin - Faces</h1>
+
+    <a href="{{ url_for('dashboard') }}">Tilbage til dashboard</a>
+    |
+    <a href="{{ url_for('logout') }}">Log ud</a>
+
+    <hr>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <p style="color: green;">{{ message }}</p>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <h2>Opret ny face</h2>
+
+    <form method="POST" action="{{ url_for('admin_create_face') }}" enctype="multipart/form-data">
+        <div>
+            <label>User ID</label>
+            <input type="number" name="user_id" required>
+        </div>
+
+        <div>
+            <label>Face Encoding</label>
+            <input type="text" name="face_encoding">
+        </div>
+
+        <div>
+            <label>Is Active</label>
+            <input type="checkbox" name="is_active" value="true">
+        </div>
+
+        <div>
+            <label>Face Picture Path</label>
+            <input type="text" name="face_picture_path">
+        </div>
+
+        <div>
+            <label>Face Picture</label>
+            <input type="file" name="face_picture" accept="image/*">
+        </div>
+
+        <button type="submit">Opret face</button>
+    </form>
+
+    <hr>
+
+    <h2>Alle faces</h2>
+
+    {% if faces %}
+    <table border="1" cellpadding="8">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>User ID</th>
+                <th>Face Encoding</th>
+                <th>Is Active</th>
+                <th>Face Picture</th>
+                <th>Handling</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for face in faces %}
+            <tr>
+                <td>{{ face["face_id"] }}</td>
+                <td>{{ face["user_id"] }}</td>
+                <td>{{ face["face_encoding"] }}</td>
+                <td>{{ face["is_active"] }}</td>
+                <td>
+                    {% if face["face_picture_path"] %}
+                    <a href="{{ url_for('static', filename=face['face_picture_path']) }}" target="_blank">
+                        Se billede
+                    </a>
+                    {% else %}
+                    Intet billede
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="POST" action="{{ url_for('admin_delete_face', face_id=face['face_id']) }}">
+                        <button type="submit" onclick="return confirm('Er du sikker på at du vil slette denne face?')">
+                            Slet
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Ingen faces fundet.</p>
+    {% endif %}
+
+</body>
+
+</html>
