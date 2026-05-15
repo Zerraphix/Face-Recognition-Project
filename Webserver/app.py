@@ -28,6 +28,7 @@ def login_required(route_function):
     return wrapper
 
 
+
 @app.route("/")
 def home():
     if is_logged_in():
@@ -140,6 +141,95 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
+# Admin routes
+# User management routes
+@app.route("/admin/users")
+def admin_users():
+    users = []
+    roles = []
+
+    try:
+        users_response = requests.get(
+            f"{API_BASE_URL}/users",
+            timeout=5
+        )
+
+        if users_response.status_code == 200:
+            users = users_response.json()
+        else:
+            flash("Kunne ikke hente users fra API")
+
+        roles_response = requests.get(
+            f"{API_BASE_URL}/roles",
+            timeout=5
+        )
+
+        if roles_response.status_code == 200:
+            roles = roles_response.json()
+        else:
+            flash("Kunne ikke hente roller fra API")
+
+    except requests.exceptions.RequestException:
+        flash("Kunne ikke forbinde til API-serveren")
+
+    return render_template(
+        "admin_users.html",
+        users=users,
+        roles=roles
+    )
+
+@app.route("/admin/users/create", methods=["POST"])
+def admin_create_user():
+    first_name = request.form.get("first_name")
+    last_name = request.form.get("last_name")
+    email = request.form.get("email")
+    password = request.form.get("password")
+    role_id = request.form.get("role_id")
+
+    try:
+        response = requests.post(
+            f"{API_BASE_URL}/users",
+            json={
+                "first_name": first_name,
+                "last_name": last_name,
+                "email": email,
+                "password_hash": password,
+                "role_id": int(role_id)
+            },
+            timeout=5
+        )
+
+        if response.status_code == 201:
+            flash("User blev oprettet")
+        else:
+            flash(f"User kunne ikke oprettes: {response.text}")
+
+    except requests.exceptions.RequestException:
+        flash("Kunne ikke forbinde til API-serveren")
+
+    return redirect(url_for("admin_users"))
+
+@app.route("/admin/users/delete/<int:user_id>", methods=["POST"])
+def admin_delete_user(user_id):
+    if user_id == session.get("user_id"):
+        flash("Du kan ikke slette dig selv mens du er logget ind")
+        return redirect(url_for("admin_users"))
+
+    try:
+        response = requests.delete(
+            f"{API_BASE_URL}/users/{user_id}",
+            timeout=5
+        )
+
+        if response.status_code == 200:
+            flash("User blev slettet")
+        else:
+            flash(f"User kunne ikke slettes: {response.text}")
+
+    except requests.exceptions.RequestException:
+        flash("Kunne ikke forbinde til API-serveren")
+
+    return redirect(url_for("admin_users"))
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
