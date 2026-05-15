@@ -45,8 +45,8 @@ def create_tables():
             CREATE TABLE IF NOT EXISTS facedata (
                 face_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NULL,
-                face_encoding TEXT NOT NULL,
-                face_picture_path TEXT NOT NULL,
+                face_encoding TEXT NULL,
+                face_picture_path TEXT NULL,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 is_active BOOLEAN NOT NULL,
                 FOREIGN KEY (user_id) REFERENCES user(user_id)
