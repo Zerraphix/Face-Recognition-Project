@@ -27,7 +27,19 @@ def login_required(route_function):
 
     return wrapper
 
+def admin_required(route_function):
+    @wraps(route_function)
+    def wrapper(*args, **kwargs):
+        if not is_logged_in():
+            return redirect(url_for("login"))
 
+        if not is_admin():
+            flash("Du har ikke adgang til admin-siden")
+            return redirect(url_for("dashboard"))
+
+        return route_function(*args, **kwargs)
+
+    return wrapper
 
 @app.route("/")
 def home():
@@ -144,6 +156,7 @@ def logout():
 # Admin routes
 # User management routes
 @app.route("/admin/users")
+@admin_required
 def admin_users():
     users = []
     roles = []
@@ -179,6 +192,7 @@ def admin_users():
     )
 
 @app.route("/admin/users/create", methods=["POST"])
+@admin_required
 def admin_create_user():
     first_name = request.form.get("first_name")
     last_name = request.form.get("last_name")
@@ -210,6 +224,7 @@ def admin_create_user():
     return redirect(url_for("admin_users"))
 
 @app.route("/admin/users/delete/<int:user_id>", methods=["POST"])
+@admin_required
 def admin_delete_user(user_id):
     if user_id == session.get("user_id"):
         flash("Du kan ikke slette dig selv mens du er logget ind")
