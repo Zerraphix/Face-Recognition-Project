@@ -13,6 +13,8 @@ from api.pin_api import api_pin
 
 app = Flask(__name__)
 
+app.secret_key = "change_this_secret_key"
+
 API_BASE_URL = "http://127.0.0.1:5000/api"
 
 
@@ -367,6 +369,86 @@ def admin_delete_log(log_id):
         flash("Kunne ikke forbinde til API-serveren")
 
     return redirect(url_for("admin_logs"))
+
+# Admin pin routes
+@app.route("/admin/pins")
+@admin_required
+def admin_pins():
+    pins = []
+
+    try:
+        response = requests.get(
+            f"{API_BASE_URL}/pins",
+            timeout=5
+        )
+
+        if response.status_code == 200:
+            pins = response.json()
+        else:
+            flash("Kunne ikke hente pins fra API")
+
+    except requests.exceptions.RequestException:
+        flash("Kunne ikke forbinde til API-serveren")
+
+    return render_template(
+        "admin_pins.html",
+        pins=pins
+    )
+
+
+@app.route("/admin/pins/create", methods=["POST"])
+@admin_required
+def admin_create_pin():
+    user_id = request.form.get("user_id")
+    pin_code = request.form.get("pin_code")
+    expiry_date = request.form.get("expiry_date")
+    is_active = request.form.get("is_active") == "true"
+
+
+    try:
+        data = {
+            "user_id": user_id,
+            "pin_code": pin_code,
+            "expires_at": expiry_date,
+            "is_active": is_active
+        }
+
+
+        response = requests.post(
+            f"{API_BASE_URL}/pins",
+            json=data,
+            timeout=5
+        )
+
+        if response.status_code == 201:
+            flash("Pin blev oprettet")
+        else:
+            flash(f"Pin  kunne ikke oprettes: {response.text}")
+
+    except requests.exceptions.RequestException as e:
+        flash(f"Kunne ikke forbinde til API-serveren: {e}")
+
+    return redirect(url_for("admin_pins"))
+
+
+@app.route("/admin/pins/delete/<int:pin_id>", methods=["POST"])
+@admin_required
+def admin_delete_pin(pin_id):
+    try:
+        response = requests.delete(
+            f"{API_BASE_URL}/pins/{pin_id}",
+            timeout=5
+        )
+
+        if response.status_code == 200:
+            flash("Pin blev slettet")
+        else:
+            flash(f"Pin kunne ikke slettes: {response.text}")
+
+    except requests.exceptions.RequestException:
+        flash("Kunne ikke forbinde til API-serveren")
+
+    return redirect(url_for("admin_pins"))
 
 if __name__ == "__main__":
     create_tables()
