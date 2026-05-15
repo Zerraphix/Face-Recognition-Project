@@ -4,7 +4,7 @@ from werkzeug.datastructures import FileStorage
 from datetime import datetime
 
 
-from services.file_upload import save_uploaded_file
+from services.file_service import save_uploaded_file
 from database.log_db import get_all_logs, get_log_by_id, create_log, delete_log
 
 

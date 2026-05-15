@@ -1,4 +1,5 @@
 from db import get_connection
+from services.file_service import delete_file
 
 
 def get_all_faces():
@@ -121,11 +122,26 @@ def delete_face(face_id):
         cur = conn.cursor()
 
         cur.execute("""
+            SELECT face_picture_path
+            FROM facedata
+            WHERE face_id = ?
+        """, (face_id,))
+
+        row = cur.fetchone()
+
+        if row is None:
+            return False
+
+        face_picture_path = row["face_picture_path"]
+
+        cur.execute("""
             DELETE FROM facedata
             WHERE face_id = ?
         """, (face_id,))
 
         conn.commit()
+
+        delete_file(face_picture_path)
 
         return cur.rowcount > 0
 

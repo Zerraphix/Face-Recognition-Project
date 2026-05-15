@@ -3,7 +3,7 @@ from flask import request
 from flask_restx import Namespace, Resource, fields, reqparse
 from werkzeug.datastructures import FileStorage
 
-from services.file_upload import save_uploaded_file
+from services.file_service import save_uploaded_file
 from database.face_db import get_all_faces, get_face_by_id, create_face, delete_face
 
 
