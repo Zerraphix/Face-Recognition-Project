@@ -246,5 +246,96 @@ def admin_delete_user(user_id):
 
     return redirect(url_for("admin_users"))
 
+# Log management routes
+@app.route("/admin/logs")
+@admin_required
+def admin_logs():
+    logs = []
+
+    try:
+        response = requests.get(
+            f"{API_BASE_URL}/logs",
+            timeout=5
+        )
+
+        if response.status_code == 200:
+            logs = response.json()
+        else:
+            flash("Kunne ikke hente logs fra API")
+
+    except requests.exceptions.RequestException:
+        flash("Kunne ikke forbinde til API-serveren")
+
+    return render_template(
+        "admin_logs.html",
+        logs=logs
+    )
+
+@app.route("/admin/logs/create", methods=["POST"])
+@admin_required
+def admin_create_log():
+    user_id = request.form.get("user_id")
+    device = request.form.get("device")
+    used_method = request.form.get("used_method")
+    access_granted = request.form.get("access_granted") == "true"
+    result = request.form.get("result")
+    security_picture = request.files.get("security_picture")
+
+    try:
+        data = {
+            "user_id": user_id,
+            "device": device,
+            "used_method": used_method,
+            "access_granted": "true" if access_granted else "false",
+            "result": result
+        }
+
+        files = None
+
+        if security_picture and security_picture.filename:
+            files = {
+                "file": (
+                    security_picture.filename,
+                    security_picture.stream,
+                    security_picture.mimetype
+                )
+            }
+
+        response = requests.post(
+            f"{API_BASE_URL}/logs",
+            data=data,
+            files=files,
+            timeout=5
+        )
+
+        if response.status_code == 201:
+            flash("Log blev oprettet")
+        else:
+            flash(f"Log kunne ikke oprettes: {response.text}")
+
+    except requests.exceptions.RequestException as e:
+        flash(f"Kunne ikke forbinde til API-serveren: {e}")
+
+    return redirect(url_for("admin_logs"))
+
+@app.route("/admin/logs/delete/<int:log_id>", methods=["POST"])
+@admin_required
+def admin_delete_log(log_id):
+    try:
+        response = requests.delete(
+            f"{API_BASE_URL}/logs/{log_id}",
+            timeout=5
+        )
+
+        if response.status_code == 200:
+            flash("Log blev slettet")
+        else:
+            flash(f"Log kunne ikke slettes: {response.text}")
+
+    except requests.exceptions.RequestException:
+        flash("Kunne ikke forbinde til API-serveren")
+
+    return redirect(url_for("admin_logs"))
+
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

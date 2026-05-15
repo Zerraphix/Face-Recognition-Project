@@ -43,6 +43,8 @@
     <p>Du er admin, så du kan se admin-indhold her.</p>
 
     <a href="{{ url_for('admin_users') }}">Administrer users</a>
+    <a href="{{ url_for('admin_logs') }}">Administrer logs</a>
+
 {% else %}
     <h2>Ikke admin</h2>
     <p>Du er logget ind, men du er ikke admin.</p>
