@@ -1,4 +1,3 @@
-# https://www.geeksforgeeks.org/python/how-to-use-flask-session-in-python-flask/
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import requests
 from functools import wraps
@@ -61,8 +60,12 @@ def login():
 
                 session["logged_in"] = True
                 session["user_id"] = data.get("user_id")
+                session["first_name"] = data.get("first_name")
+                session["last_name"] = data.get("last_name")
                 session["email"] = data.get("email")
+                session["role_id"] = data.get("role_id")
                 session["role_name"] = data.get("role_name")
+                session["has_face_data"] = data.get("has_face_data", False)
 
                 return redirect(url_for("dashboard"))
 
@@ -84,10 +87,52 @@ def login():
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    if not is_admin():
-        return render_template("not_admin.html")
+    return render_template(
+        "dashboard.html",
+        is_admin=is_admin()
+    )
 
-    return render_template("dashboard.html")
+
+@app.route("/upload-face", methods=["POST"])
+@login_required
+def upload_face():
+    file = request.files.get("file")
+
+    if file is None or file.filename == "":
+        flash("Du skal vælge et billede")
+        return redirect(url_for("dashboard"))
+
+    try:
+        files = {
+            "file": (
+                file.filename,
+                file.stream,
+                file.mimetype
+            )
+        }
+
+        data = {
+            "user_id": session["user_id"],
+            "is_active": "true"
+        }
+
+        response = requests.post(
+            f"{API_BASE_URL}/faces",
+            data=data,
+            files=files,
+            timeout=10
+        )
+
+        if response.status_code == 201:
+            session["has_face_data"] = True
+            flash("Face data blev uploadet")
+        else:
+            flash(f"Upload fejlede: {response.text}")
+
+    except requests.exceptions.RequestException:
+        flash("Kunne ikke forbinde til API-serveren")
+
+    return redirect(url_for("dashboard"))
 
 
 @app.route("/logout")

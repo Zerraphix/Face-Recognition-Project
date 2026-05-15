@@ -70,16 +70,27 @@ def get_user_by_email(email):
         cur = conn.cursor()
 
         cur.execute("""
-            SELECT 
+            SELECT
                 user.user_id,
                 user.first_name,
                 user.last_name,
                 user.email,
                 user.password_hash,
                 user.role_id,
-                role.role_name
+                role.role_name,
+
+                CASE
+                    WHEN facedata.face_id IS NOT NULL THEN 1
+                    ELSE 0
+                END AS has_face_data
+
             FROM user
-            INNER JOIN role ON user.role_id = role.role_id
+            JOIN role ON user.role_id = role.role_id
+
+            LEFT JOIN facedata 
+                ON user.user_id = facedata.user_id
+                AND facedata.is_active = 1
+
             WHERE user.email = ?
         """, (email,))
 

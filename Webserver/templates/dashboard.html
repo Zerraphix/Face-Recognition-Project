@@ -6,10 +6,47 @@
 </head>
 <body>
 
-    <h1>Admin Dashboard</h1>
+    <h1>Dashboard</h1>
 
-    <p>Velkommen, {{ session["email"] }}</p>
-    <p>Din rolle er: {{ session["role_name"] }}</p>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <p style="color: green;">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <p>Logget ind som: {{ session["email"] }}</p>
+    <p>Rolle: {{ session["role_name"] }}</p>
+
+    <hr>
+
+    <h2>Face data</h2>
+
+    {% if session["has_face_data"] %}
+        <p style="color: green;">Du har allerede face data registreret.</p>
+    {% else %}
+        <p style="color: red;">Du mangler face data.</p>
+
+        <form method="POST" action="{{ url_for('upload_face') }}" enctype="multipart/form-data">
+            <label>Upload ansigtsbillede</label>
+            <input type="file" name="file" accept="image/*" required>
+
+            <button type="submit">Upload face data</button>
+        </form>
+    {% endif %}
+
+    <hr>
+
+    {% if is_admin %}
+        <h2>Admin Dashboard</h2>
+        <p>Du er admin, så du kan se admin-indhold her.</p>
+    {% else %}
+        <h2>Ikke admin</h2>
+        <p>Du er logget ind, men du er ikke admin.</p>
+    {% endif %}
+
+    <hr>
 
     <a href="{{ url_for('logout') }}">Log ud</a>
 

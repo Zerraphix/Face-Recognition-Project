@@ -115,13 +115,16 @@ class UserLogin(Resource):
         if user is None:
             api_user.abort(404, "User not found")
 
-
         if not verify_pass(data["password"], user["password_hash"]):
             api_user.abort(401, "Invalid password")
 
         return {
             "message": "Login successful",
             "user_id": user["user_id"],
+            "first_name": user["first_name"],
+            "last_name": user["last_name"],
             "email": user["email"],
-            "role_name": user["role_name"]
+            "role_id": user["role_id"],
+            "role_name": user["role_name"],
+            "has_face_data": bool(user["has_face_data"])
         }, 200

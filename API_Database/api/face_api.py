@@ -27,7 +27,7 @@ face_model = api_face.model("Face", {
 
 create_face_parser = reqparse.RequestParser()
 create_face_parser.add_argument("user_id", type=int, required=True, location="form")
-create_face_parser.add_argument("face_encoding", type=str, required=True, location="form")
+create_face_parser.add_argument("face_encoding", type=str, required=False, location="form")
 create_face_parser.add_argument("is_active", type=bool, required=True, location="form")
 create_face_parser.add_argument("face_picture_path", type=str, required=False, location="files")
 create_face_parser.add_argument("file", type=FileStorage, required=False, location="files")
