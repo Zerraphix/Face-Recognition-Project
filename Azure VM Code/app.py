@@ -1,14 +1,39 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask_restx import Api
 import requests
 from functools import wraps
 
-app = Flask(__name__)
+from database.init_db import create_tables, seed_data
+from api.role_api import api_role
+from api.user_api import api_user
+from api.log_api import api_log
+from api.face_api import api_face
+from api.pin_api import api_pin
 
-app.secret_key = "change_this_secret_key"
+
+app = Flask(__name__)
 
 API_BASE_URL = "http://127.0.0.1:5000/api"
 
 
+# API setup
+api = Api(
+    app,
+    title="Face Access API",
+    version="1.0",
+    description="API til ansigtsgenkendelse og adgangskontrol",
+    doc="/docs"
+)
+
+api.add_namespace(api_role, path="/api/roles")
+api.add_namespace(api_user, path="/api/users")
+api.add_namespace(api_log, path="/api/logs")
+api.add_namespace(api_face, path="/api/faces")
+api.add_namespace(api_pin, path="/api/pins")
+
+
+
+# Login helpers
 def is_logged_in():
     return session.get("logged_in") is True
 
@@ -27,6 +52,7 @@ def login_required(route_function):
 
     return wrapper
 
+
 def admin_required(route_function):
     @wraps(route_function)
     def wrapper(*args, **kwargs):
@@ -41,6 +67,7 @@ def admin_required(route_function):
 
     return wrapper
 
+# Website routes
 @app.route("/")
 def home():
     if is_logged_in():
@@ -153,8 +180,8 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
 
-# Admin routes
-# User management routes
+
+# Admin user routes
 @app.route("/admin/users")
 @admin_required
 def admin_users():
@@ -191,6 +218,7 @@ def admin_users():
         roles=roles
     )
 
+
 @app.route("/admin/users/create", methods=["POST"])
 @admin_required
 def admin_create_user():
@@ -223,6 +251,7 @@ def admin_create_user():
 
     return redirect(url_for("admin_users"))
 
+
 @app.route("/admin/users/delete/<int:user_id>", methods=["POST"])
 @admin_required
 def admin_delete_user(user_id):
@@ -246,7 +275,7 @@ def admin_delete_user(user_id):
 
     return redirect(url_for("admin_users"))
 
-# Log management routes
+# Admin log routes
 @app.route("/admin/logs")
 @admin_required
 def admin_logs():
@@ -270,6 +299,7 @@ def admin_logs():
         "admin_logs.html",
         logs=logs
     )
+
 
 @app.route("/admin/logs/create", methods=["POST"])
 @admin_required
@@ -318,6 +348,7 @@ def admin_create_log():
 
     return redirect(url_for("admin_logs"))
 
+
 @app.route("/admin/logs/delete/<int:log_id>", methods=["POST"])
 @admin_required
 def admin_delete_log(log_id):
@@ -338,4 +369,12 @@ def admin_delete_log(log_id):
     return redirect(url_for("admin_logs"))
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    create_tables()
+    seed_data()
+
+    app.run(
+        debug=True,
+        host="0.0.0.0",
+        port=5000,
+        threaded=True
+    )
