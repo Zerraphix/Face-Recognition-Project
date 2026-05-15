@@ -27,6 +27,45 @@ def create_tables():
             )
         """)
 
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS logging (
+                log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NULL,
+                device TEXT NOT NULL,
+                used_method TEXT NOT NULL,
+                timestamp DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                access_granted BOOLEAN NOT NULL,
+                result TEXT NOT NULL,
+                security_picture_path TEXT NULL,
+                FOREIGN KEY (user_id) REFERENCES user(user_id)
+            )
+        """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS facedata (
+                face_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NULL,
+                face_encoding TEXT NULL,
+                face_picture_path TEXT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                is_active BOOLEAN NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES user(user_id)
+            )
+        """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS pin (
+                pin_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NULL,
+                pin_code_hash TEXT NOT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                expiration_time DATETIME NOT NULL,
+                is_active BOOLEAN NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES user(user_id)
+            )
+        """)
+
+
         conn.commit()
         print("Tables created successfully")
 

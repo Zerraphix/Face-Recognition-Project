@@ -4,8 +4,8 @@ from flask import request
 from flask_restx import Namespace, Resource, fields
 
 
-from services.security_service import hash_pass
-from database.user_db import get_all_users, get_user_by_id, create_user, delete_user
+from services.security_service import hash_pass, verify_pass
+from database.user_db import get_all_users, get_user_by_id, get_user_by_email, create_user, delete_user
 
 
 api_user = Namespace("users", description="User operations")
@@ -93,3 +93,38 @@ class UserById(Resource):
             api_user.abort(404, "User not found")
 
         return {"message": "User deleted"}, 200
+    
+
+login_model = api_user.model("UserLogin", {
+    "email": fields.String(required=True, example="test@example.com"),
+    "password": fields.String(required=True, example="password")
+})
+
+@api_user.route("/login", methods=["POST"])
+class UserLogin(Resource):
+
+    @api_user.expect(login_model)
+    def post(self):
+        data = request.get_json()
+
+        if "email" not in data or "password" not in data:
+            api_user.abort(400, "Missing email or password")
+
+        user = get_user_by_email(data["email"])
+
+        if user is None:
+            api_user.abort(404, "User not found")
+
+        if not verify_pass(data["password"], user["password_hash"]):
+            api_user.abort(401, "Invalid password")
+
+        return {
+            "message": "Login successful",
+            "user_id": user["user_id"],
+            "first_name": user["first_name"],
+            "last_name": user["last_name"],
+            "email": user["email"],
+            "role_id": user["role_id"],
+            "role_name": user["role_name"],
+            "has_face_data": bool(user["has_face_data"])
+        }, 200

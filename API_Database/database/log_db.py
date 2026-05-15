@@ -1,7 +1,7 @@
 from db import get_connection
 
 
-def get_all_users():
+def get_all_logs():
     conn = None
 
     try:
@@ -10,16 +10,23 @@ def get_all_users():
 
         cur.execute("""
             SELECT 
-                user.user_id,
+                logging.log_id,
+                logging.user_id,
+                logging.device,
+                logging.used_method,
+                logging.timestamp,
+                logging.access_granted,
+                logging.result,
+                logging.security_picture_path,
                 user.first_name,
                 user.last_name,
                 user.email,
-                user.password_hash,
                 user.role_id,
                 role.role_name
-            FROM user
+            FROM logging
+            INNER JOIN user ON logging.user_id = user.user_id
             INNER JOIN role ON user.role_id = role.role_id
-            ORDER BY user.user_id
+            ORDER BY logging.timestamp DESC
         """)
 
         rows = cur.fetchall()
@@ -30,7 +37,7 @@ def get_all_users():
             conn.close()
 
 
-def get_user_by_id(user_id):
+def get_log_by_id(log_id):
     conn = None
 
     try:
@@ -39,17 +46,24 @@ def get_user_by_id(user_id):
 
         cur.execute("""
             SELECT 
-                user.user_id,
+                logging.log_id,
+                logging.user_id,
+                logging.device,
+                logging.used_method,
+                logging.timestamp,
+                logging.access_granted,
+                logging.result,
+                logging.security_picture_path,
                 user.first_name,
                 user.last_name,
                 user.email,
-                user.password_hash,
                 user.role_id,
                 role.role_name
-            FROM user
+            FROM logging
+            INNER JOIN user ON logging.user_id = user.user_id
             INNER JOIN role ON user.role_id = role.role_id
-            WHERE user.user_id = ?
-        """, (user_id,))
+            WHERE logging.log_id = ?
+        """, (log_id,))
 
         row = cur.fetchone()
 
@@ -61,9 +75,10 @@ def get_user_by_id(user_id):
     finally:
         if conn:
             conn.close()
+                
 
 
-def create_user(first_name, last_name, email, password_hash, role_id):
+def create_log(user_id, device, used_method, access_granted, result, security_picture_path):
     conn = None
 
     try:
@@ -71,26 +86,28 @@ def create_user(first_name, last_name, email, password_hash, role_id):
         cur = conn.cursor()
 
         cur.execute("""
-            INSERT INTO user (
-                first_name,
-                last_name,
-                email,
-                password_hash,
-                role_id
+            INSERT INTO logging (
+                user_id,
+                device,
+                used_method,
+                access_granted,
+                result,
+                security_picture_path
             )
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?)
         """, (
-            first_name,
-            last_name,
-            email,
-            password_hash,
-            role_id
+            user_id,
+            device,
+            used_method,
+            access_granted,
+            result,
+            security_picture_path
         ))
 
         conn.commit()
 
-        new_user_id = cur.lastrowid
-        return get_user_by_id(new_user_id)
+        new_log_id = cur.lastrowid
+        return get_log_by_id(new_log_id)
 
     except Exception as e:
         if conn:
@@ -103,7 +120,7 @@ def create_user(first_name, last_name, email, password_hash, role_id):
             conn.close()
 
 
-def delete_user(user_id):
+def delete_log(log_id):
     conn = None
 
     try:
@@ -111,9 +128,9 @@ def delete_user(user_id):
         cur = conn.cursor()
 
         cur.execute("""
-            DELETE FROM user
-            WHERE user_id = ?
-        """, (user_id,))
+            DELETE FROM logging
+            WHERE log_id = ?
+        """, (log_id,))
 
         conn.commit()
 
