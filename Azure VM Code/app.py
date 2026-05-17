@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory
 from flask_restx import Api
 import requests
 from functools import wraps
@@ -129,16 +129,41 @@ def login():
 @app.route("/dashboard")
 @login_required
 def dashboard():
+    face = None
+
+    try:
+        response = requests.get(
+            f"{API_BASE_URL}/faces/user/{session['user_id']}",
+            timeout=5
+        )
+
+        if response.status_code == 200:
+            faces = response.json()
+
+            if len(faces) > 0:
+                face = faces[0]
+        else:
+            flash("Kunne ikke hente face data")
+
+    except requests.exceptions.RequestException:
+        flash("Kunne ikke forbinde til API-serveren")
+
     return render_template(
         "dashboard.html",
-        is_admin=is_admin()
+        is_admin=is_admin(),
+        face=face
     )
 
+@app.route("/uploads/<path:filename>")
+@login_required
+def uploaded_file(filename):
+    return send_from_directory("uploads", filename)
 
 @app.route("/upload-face", methods=["POST"])
 @login_required
 def upload_face():
     file = request.files.get("file")
+    face_id = request.form.get("face_id")
 
     if file is None or file.filename == "":
         flash("Du skal vælge et billede")
@@ -155,19 +180,30 @@ def upload_face():
 
         data = {
             "user_id": session["user_id"],
-            "is_active": "true"
+            "is_active": "true" if is_admin() else "false"
         }
 
-        response = requests.post(
-            f"{API_BASE_URL}/faces",
-            data=data,
-            files=files,
-            timeout=10
-        )
+        if face_id:
+            response = requests.patch(
+                f"{API_BASE_URL}/faces/{face_id}",
+                data=data,
+                files=files,
+                timeout=10
+            )
+        else:
+            response = requests.post(
+                f"{API_BASE_URL}/faces",
+                data=data,
+                files=files,
+                timeout=10
+            )
 
-        if response.status_code == 201:
-            session["has_face_data"] = True
-            flash("Face data blev uploadet")
+        if response.status_code in [200, 201]:
+            if is_admin():
+                session["has_face_data"] = True
+                flash("Face billede blev gemt og aktiveret")
+            else:
+                flash("Face billede blev gemt og afventer admin godkendelse")
         else:
             flash(f"Upload fejlede: {response.text}")
 
@@ -460,6 +496,50 @@ def admin_delete_face(face_id):
         flash("Kunne ikke forbinde til API-serveren")
 
     return redirect(url_for("admin_faces"))
+
+@app.route("/faces/update/<int:face_id>", methods=["POST"])
+@login_required
+def update_face_image(face_id):
+    file = request.files.get("file")
+
+    if file is None or file.filename == "":
+        flash("Du skal vælge et billede")
+        return redirect(url_for("dashboard"))
+
+    try:
+        is_active = is_admin()
+
+        data = {
+            "is_active": "true" if is_active else "false"
+        }
+
+        files = {
+            "file": (
+                file.filename,
+                file.stream,
+                file.mimetype
+            )
+        }
+
+        response = requests.patch(
+            f"{API_BASE_URL}/faces/{face_id}",
+            data=data,
+            files=files,
+            timeout=10
+        )
+
+        if response.status_code == 200:
+            if is_active:
+                flash("Face billede blev opdateret og aktiveret")
+            else:
+                flash("Face billede blev opdateret og afventer admin godkendelse")
+        else:
+            flash(f"Opdatering fejlede: {response.text}")
+
+    except requests.exceptions.RequestException:
+        flash("Kunne ikke forbinde til API-serveren")
+
+    return redirect(url_for("dashboard"))
 
 # Admin pin routes
 @app.route("/admin/pins")

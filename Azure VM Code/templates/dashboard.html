@@ -23,20 +23,55 @@
 
     <h2>Face data</h2>
 
-    {% if session["has_face_data"] %}
-        <p style="color: green;">Du har allerede face data registreret.</p>
+{% if face %}
+    {% if face.is_active %}
+        <p style="color: green;">Du har aktiv face data registreret.</p>
     {% else %}
-        <p style="color: red;">Du mangler face data.</p>
-
-        <form method="POST" action="{{ url_for('upload_face') }}" enctype="multipart/form-data">
-            <label>Upload ansigtsbillede</label>
-            <input type="file" name="file" accept="image/*" required>
-
-            <button type="submit">Upload face data</button>
-        </form>
+        <p style="color: orange;">Dit face billede afventer admin godkendelse.</p>
     {% endif %}
 
-    <hr>
+    {% if face.face_picture_path %}
+        <img 
+            src="{{ url_for('uploaded_file', filename=face.face_picture_path.replace('uploads/', '')) }}"
+            alt="Face billede"
+            style="max-width: 250px; height: auto;"
+        >
+    {% endif %}
+
+    <p>Oprettet: {{ face.created_at }}</p>
+{% else %}
+    <p style="color: red;">Du har ingen face data endnu.</p>
+{% endif %}
+
+<h3>
+    {% if face %}
+        Opdater ansigtsbillede
+    {% else %}
+        Upload ansigtsbillede
+    {% endif %}
+</h3>
+
+{% if is_admin %}
+    <p>Du er admin, så billedet bliver aktivt med det samme.</p>
+{% else %}
+    <p>Billedet skal godkendes af en admin, før det bliver aktivt.</p>
+{% endif %}
+
+<form method="POST" action="{{ url_for('upload_face') }}" enctype="multipart/form-data">
+    {% if face %}
+        <input type="hidden" name="face_id" value="{{ face.face_id }}">
+    {% endif %}
+
+    <input type="file" name="file" accept="image/*" required>
+
+    <button type="submit">
+        {% if face %}
+            Opdater billede
+        {% else %}
+            Upload billede
+        {% endif %}
+    </button>
+</form>
 
 {% if is_admin %}
     <h2>Admin Dashboard</h2>
