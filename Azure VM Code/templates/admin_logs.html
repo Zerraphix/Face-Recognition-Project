@@ -1,116 +1,135 @@
-<!DOCTYPE html>
-<html lang="da">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Admin - Logs</title>
-</head>
+{% block title %}Admin - Logs{% endblock %}
 
-<body>
+{% block content %}
 
-    <h1>Admin - Logs</h1>
+<h1 class="h3 mb-4">Admin - Logs</h1>
 
-    <a href="{{ url_for('dashboard') }}">Tilbage til dashboard</a>
-    |
-    <a href="{{ url_for('logout') }}">Log ud</a>
+<div class="row g-4">
 
-    <hr>
+    <div class="col-12 col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
 
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    {% for message in messages %}
-    <p style="color: green;">{{ message }}</p>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
+                <h2 class="h5 mb-3">Opret ny log</h2>
 
-    <h2>Opret ny log</h2>
+                <form method="POST" action="{{ url_for('admin_create_log') }}" enctype="multipart/form-data">
 
-    <form method="POST" action="{{ url_for('admin_create_log') }}" enctype="multipart/form-data">
-        <div>
-            <label>User ID</label>
-            <input type="number" name="user_id" required>
+                    <div class="mb-3">
+                        <label class="form-label">User ID</label>
+                        <input type="number" name="user_id" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Device</label>
+                        <input type="text" name="device" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Used Method</label>
+                        <input type="text" name="used_method" class="form-control" required>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input type="checkbox" name="access_granted" value="true" class="form-check-input" id="accessGranted">
+                        <label class="form-check-label" for="accessGranted">
+                            Access Granted
+                        </label>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Result</label>
+                        <input type="text" name="result" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Security Picture</label>
+                        <input type="file" name="security_picture" accept="image/*" class="form-control">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        Opret log
+                    </button>
+                </form>
+
+            </div>
         </div>
+    </div>
 
-        <div>
-            <label>Device</label>
-            <input type="text" name="device" required>
+    <div class="col-12 col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+
+                <h2 class="h5 mb-3">Alle logs</h2>
+
+                {% if logs %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>User ID</th>
+                                    <th>Device</th>
+                                    <th>Method</th>
+                                    <th>Access</th>
+                                    <th>Result</th>
+                                    <th>Billede</th>
+                                    <th>Handling</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for log in logs %}
+                                <tr>
+                                    <td>{{ log["log_id"] }}</td>
+                                    <td>{{ log["user_id"] }}</td>
+                                    <td>{{ log["device"] }}</td>
+                                    <td>{{ log["used_method"] }}</td>
+
+                                    <td>
+                                        {% if log["access_granted"] %}
+                                            <span class="badge bg-success">Granted</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Denied</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>{{ log["result"] }}</td>
+
+                                    <td>
+                                        {% if log["security_picture_path"] %}
+                                            <a href="{{ url_for('static', filename=log['security_picture_path']) }}"
+                                               target="_blank"
+                                               class="btn btn-outline-secondary btn-sm">
+                                                Se billede
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">Intet billede</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        <form method="POST" action="{{ url_for('admin_delete_log', log_id=log['log_id']) }}">
+                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Er du sikker på at du vil slette denne log?')">
+                                                Slet
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Ingen logs fundet.</p>
+                {% endif %}
+
+            </div>
         </div>
+    </div>
 
-        <div>
-            <label>Used Method</label>
-            <input type="text" name="used_method" required>
-        </div>
+</div>
 
-        <div>
-            <label>Access Granted</label>
-            <input type="checkbox" name="access_granted" value="true">
-        </div>
-
-        <div>
-            <label>Result</label>
-            <input type="text" name="result" required>
-        </div>
-
-        <div>
-            <label>Security Picture</label>
-            <input type="file" name="security_picture" accept="image/*">
-        </div>
-
-        <button type="submit">Opret log</button>
-    </form>
-
-    <hr>
-
-    <h2>Alle logs</h2>
-
-    {% if logs %}
-    <table border="1" cellpadding="8">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>User ID</th>
-                <th>Device</th>
-                <th>Used Method</th>
-                <th>Access Granted</th>
-                <th>Result</th>
-                <th>Security Picture</th>
-                <th>Handling</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for log in logs %}
-            <tr>
-                <td>{{ log["log_id"] }}</td>
-                <td>{{ log["user_id"] }}</td>
-                <td>{{ log["device"] }}</td>
-                <td>{{ log["used_method"] }}</td>
-                <td>{{ log["access_granted"] }}</td>
-                <td>{{ log["result"] }}</td>
-                <td>
-                    {% if log["security_picture_path"] %}
-                    <a href="{{ url_for('static', filename=log['security_picture_path']) }}" target="_blank">
-                        Se billede
-                    </a>
-                    {% else %}
-                    Ingen billede
-                    {% endif %}
-                <td>
-                    <form method="POST" action="{{ url_for('admin_delete_log', log_id=log['log_id']) }}">
-                        <button type="submit" onclick="return confirm('Er du sikker på at du vil slette denne log?')">
-                            Slet
-                        </button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>Ingen logs fundet.</p>
-    {% endif %}
-
-</body>
-
-</html>
+{% endblock %}

@@ -1,108 +1,132 @@
-<!DOCTYPE html>
-<html lang="da">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Admin - Faces</title>
-</head>
+{% block title %}Admin - Faces{% endblock %}
 
-<body>
+{% block content %}
 
-    <h1>Admin - Faces</h1>
+<h1 class="h3 mb-4">Admin - Faces</h1>
 
-    <a href="{{ url_for('dashboard') }}">Tilbage til dashboard</a>
-    |
-    <a href="{{ url_for('logout') }}">Log ud</a>
+<div class="row g-4">
 
-    <hr>
+    <div class="col-12 col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
 
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    {% for message in messages %}
-    <p style="color: green;">{{ message }}</p>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
+                <h2 class="h5 mb-3">Opret ny face</h2>
 
-    <h2>Opret ny face</h2>
+                <form method="POST" action="{{ url_for('admin_create_face') }}" enctype="multipart/form-data">
 
-    <form method="POST" action="{{ url_for('admin_create_face') }}" enctype="multipart/form-data">
-        <div>
-            <label>User ID</label>
-            <input type="number" name="user_id" required>
+                    <div class="mb-3">
+                        <label class="form-label">User ID</label>
+                        <input type="number" name="user_id" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Face Encoding</label>
+                        <input type="text" name="face_encoding" class="form-control">
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input type="checkbox" name="is_active" value="true" class="form-check-input" id="faceActive">
+                        <label class="form-check-label" for="faceActive">
+                            Aktiv
+                        </label>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Face Picture Path</label>
+                        <input type="text" name="face_picture_path" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Face Picture</label>
+                        <input type="file" name="face_picture" accept="image/*" class="form-control">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        Opret face
+                    </button>
+                </form>
+
+            </div>
         </div>
+    </div>
 
-        <div>
-            <label>Face Encoding</label>
-            <input type="text" name="face_encoding">
+    <div class="col-12 col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+
+                <h2 class="h5 mb-3">Alle faces</h2>
+
+                {% if faces %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>User ID</th>
+                                    <th>Encoding</th>
+                                    <th>Aktiv</th>
+                                    <th>Billede</th>
+                                    <th>Handling</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for face in faces %}
+                                <tr>
+                                    <td>{{ face["face_id"] }}</td>
+                                    <td>{{ face["user_id"] }}</td>
+
+                                    <td>
+                                        {% if face["face_encoding"] %}
+                                            <span class="badge bg-success">Ja</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Nej</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if face["is_active"] %}
+                                            <span class="badge bg-success">Aktiv</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Afventer</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if face["face_picture_path"] %}
+                                            <a href="{{ url_for('static', filename=face['face_picture_path']) }}"
+                                               target="_blank"
+                                               class="btn btn-outline-secondary btn-sm">
+                                                Se billede
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">Intet billede</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        <form method="POST" action="{{ url_for('admin_delete_face', face_id=face['face_id']) }}">
+                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Er du sikker på at du vil slette denne face?')">
+                                                Slet
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Ingen faces fundet.</p>
+                {% endif %}
+
+            </div>
         </div>
+    </div>
 
-        <div>
-            <label>Is Active</label>
-            <input type="checkbox" name="is_active" value="true">
-        </div>
+</div>
 
-        <div>
-            <label>Face Picture Path</label>
-            <input type="text" name="face_picture_path">
-        </div>
-
-        <div>
-            <label>Face Picture</label>
-            <input type="file" name="face_picture" accept="image/*">
-        </div>
-
-        <button type="submit">Opret face</button>
-    </form>
-
-    <hr>
-
-    <h2>Alle faces</h2>
-
-    {% if faces %}
-    <table border="1" cellpadding="8">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>User ID</th>
-                <th>Face Encoding</th>
-                <th>Is Active</th>
-                <th>Face Picture</th>
-                <th>Handling</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for face in faces %}
-            <tr>
-                <td>{{ face["face_id"] }}</td>
-                <td>{{ face["user_id"] }}</td>
-                <td>{{ face["face_encoding"] }}</td>
-                <td>{{ face["is_active"] }}</td>
-                <td>
-                    {% if face["face_picture_path"] %}
-                    <a href="{{ url_for('static', filename=face['face_picture_path']) }}" target="_blank">
-                        Se billede
-                    </a>
-                    {% else %}
-                    Intet billede
-                    {% endif %}
-                </td>
-                <td>
-                    <form method="POST" action="{{ url_for('admin_delete_face', face_id=face['face_id']) }}">
-                        <button type="submit" onclick="return confirm('Er du sikker på at du vil slette denne face?')">
-                            Slet
-                        </button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>Ingen faces fundet.</p>
-    {% endif %}
-
-</body>
-
-</html>
+{% endblock %}

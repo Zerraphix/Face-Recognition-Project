@@ -1,99 +1,117 @@
-<!DOCTYPE html>
-<html lang="da">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Admin - Pins</title>
-</head>
+{% block title %}Admin - Pins{% endblock %}
 
-<body>
+{% block content %}
 
-    <h1>Admin - Pins</h1>
+<h1 class="h3 mb-4">Admin - Pins</h1>
 
-    <a href="{{ url_for('dashboard') }}">Tilbage til dashboard</a>
-    |
-    <a href="{{ url_for('logout') }}">Log ud</a>
+<div class="row g-4">
 
-    <hr>
+    <div class="col-12 col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
 
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    {% for message in messages %}
-    <p style="color: green;">{{ message }}</p>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
+                <h2 class="h5 mb-3">Opret ny pin</h2>
 
-    <h2>Opret ny pin</h2>
+                <form method="POST" action="{{ url_for('admin_create_pin') }}" enctype="multipart/form-data">
 
-    <form method="POST" action="{{ url_for('admin_create_pin') }}" enctype="multipart/form-data">
-        <div>
-            <label>User ID</label>
-            <input type="number" name="user_id" required>
+                    <div class="mb-3">
+                        <label class="form-label">User ID</label>
+                        <input type="number" name="user_id" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Pin code</label>
+                        <input type="number" name="pin_code" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Expiry Date</label>
+                        <input type="date" name="expiry_date" class="form-control" required>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input type="checkbox" name="is_active" value="true" class="form-check-input" id="isActive">
+                        <label class="form-check-label" for="isActive">
+                            Aktiv
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        Opret pin
+                    </button>
+                </form>
+
+            </div>
         </div>
+    </div>
 
-        <div>
-            <label>Pin code</label>
-            <input type="number" name="pin_code" required>
-        </div>
+    <div class="col-12 col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
 
-        <div>
-            <label>Expiry Date</label>
-            <input type="date" name="expiry_date" required>
-        </div>
+                <h2 class="h5 mb-3">Alle pins</h2>
 
-        <div>
-            <label>Is Active</label>
-            <input type="checkbox" name="is_active" value="true">
-        </div>
+                {% if pins %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>User ID</th>
+                                    <th>Pin Code</th>
+                                    <th>Expiry Date</th>
+                                    <th>Aktiv</th>
+                                    <th>Handling</th>
+                                </tr>
+                            </thead>
 
-        <button type="submit">Opret pin</button>
-    </form>
+                            <tbody>
+                                {% for pin in pins %}
+                                <tr>
+                                    <td>{{ pin["pin_id"] }}</td>
+                                    <td>{{ pin["user_id"] }}</td>
 
-    <hr>
+                                    <td>
+                                        {% if pin["pin_code_hash"] %}
+                                            <span class="badge bg-success">Ja</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Nej</span>
+                                        {% endif %}
+                                    </td>
 
-    <h2>Alle pins</h2>
+                                    <td>{{ pin["expires_at"] }}</td>
 
-    {% if pins %}
-    <table border="1" cellpadding="8">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>User ID</th>
-                <th>Pin Code</th>
-                <th>Expiry Date</th>
-                <th>Is Active</th>
-                <th>Handling</th>
-            </tr>
-        </thead>
+                                    <td>
+                                        {% if pin["is_active"] %}
+                                            <span class="badge bg-success">Aktiv</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inaktiv</span>
+                                        {% endif %}
+                                    </td>
 
-        <tbody>
-            {% for pin in pins %}
-            <tr>
-                <td>{{ pin["pin_id"] }}</td>
-                <td>{{ pin["user_id"] }}</td>
-                {% if pin["pin_code_hash"] %}
-                <td style="color: green;">Yes</td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('admin_delete_pin', pin_id=pin['pin_id']) }}">
+                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Er du sikker på at du vil slette denne pin?')">
+                                                Slet
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 {% else %}
-                <td style="color: red;">No</td>
+                    <p class="text-muted mb-0">Ingen pins fundet.</p>
                 {% endif %}
-                <td>{{ pin["expires_at"] }}</td>
-                <td>{{ pin["is_active"] }}</td>
-                <td>
-                    <form method="POST" action="{{ url_for('admin_delete_pin', pin_id=pin['pin_id']) }}">
-                        <button type="submit" onclick="return confirm('Er du sikker på at du vil slette denne pin?')">
-                            Slet
-                        </button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>Ingen pins fundet.</p>
-    {% endif %}
 
-</body>
+            </div>
+        </div>
+    </div>
 
-</html>
+</div>
+
+{% endblock %}

@@ -1,34 +1,37 @@
-<!DOCTYPE html>
-<html lang="da">
-<head>
-    <meta charset="UTF-8">
-    <title>Login</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-    <h1>Login</h1>
+{% block title %}Login{% endblock %}
 
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for message in messages %}
-                <p style="color: red;">{{ message }}</p>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+{% block content %}
 
-    <form method="POST">
-        <div>
-            <label>Email</label>
-            <input type="email" name="email" required>
+<div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="col-12 col-sm-10 col-md-6 col-lg-4">
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+
+                <h1 class="h3 text-center mb-4">Login</h1>
+
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">
+                        Log ind
+                    </button>
+                </form>
+
+            </div>
         </div>
 
-        <div>
-            <label>Password</label>
-            <input type="password" name="password" required>
-        </div>
+    </div>
+</div>
 
-        <button type="submit">Log ind</button>
-    </form>
-
-</body>
-</html>
+{% endblock %}
