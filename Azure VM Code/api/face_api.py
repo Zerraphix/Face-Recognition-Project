@@ -104,12 +104,11 @@ class FaceById(Resource):
     
     @api_face.expect(create_face_parser)  
     @api_face.marshal_with(face_model)
-    def patch(self, face_id):
+    def put(self, face_id):
         args = create_face_parser.parse_args()
 
         face_encoding = args["face_encoding"]
         is_active = convert_is_active(args["is_active"])
-        print("is_active:", is_active)
         file = args["file"]
 
         face_picture_path = None
