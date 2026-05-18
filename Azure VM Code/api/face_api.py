@@ -32,6 +32,12 @@ create_face_parser.add_argument("is_active", type=str, required=False, location=
 create_face_parser.add_argument("face_picture_path", type=str, required=False, location="files")
 create_face_parser.add_argument("file", type=FileStorage, required=False, location="files")
 
+update_face_parser = reqparse.RequestParser()
+update_face_parser.add_argument("face_encoding", type=str, required=False, location="form")
+update_face_parser.add_argument("is_active", type=str, required=False, location="form")
+update_face_parser.add_argument("face_picture_path", type=str, required=False, location="form")
+update_face_parser.add_argument("file", type=FileStorage, required=False, location="files")
+
 
 def convert_is_active(value):
     if value == "true":
@@ -102,10 +108,10 @@ class FaceById(Resource):
 
         return {"message": "Face deleted"}, 200
     
-    @api_face.expect(create_face_parser)  
+    @api_face.expect(update_face_parser)  
     @api_face.marshal_with(face_model)
     def put(self, face_id):
-        args = create_face_parser.parse_args()
+        args = update_face_parser.parse_args()
 
         face_encoding = args["face_encoding"]
         is_active = convert_is_active(args["is_active"])
