@@ -225,6 +225,9 @@ def logout():
 def admin_users():
     users = []
     roles = []
+    edit_user = None
+
+    edit_user_id = request.args.get("edit_user_id")
 
     try:
         users_response = requests.get(
@@ -247,13 +250,25 @@ def admin_users():
         else:
             flash("Kunne ikke hente roller fra API")
 
+        if edit_user_id:
+            edit_response = requests.get(
+                f"{API_BASE_URL}/users/{edit_user_id}",
+                timeout=5
+            )
+
+            if edit_response.status_code == 200:
+                edit_user = edit_response.json()
+            else:
+                flash("Kunne ikke hente user til redigering")
+
     except requests.exceptions.RequestException:
         flash("Kunne ikke forbinde til API-serveren")
 
     return render_template(
         "admin_users.html",
         users=users,
-        roles=roles
+        roles=roles,
+        edit_user=edit_user
     )
 
 
@@ -307,6 +322,42 @@ def admin_delete_user(user_id):
             flash("User blev slettet")
         else:
             flash(f"User kunne ikke slettes: {response.text}")
+
+    except requests.exceptions.RequestException:
+        flash("Kunne ikke forbinde til API-serveren")
+
+    return redirect(url_for("admin_users"))
+
+@app.route("/admin/users/update/<int:user_id>", methods=["POST"])
+@admin_required
+def admin_update_user(user_id):
+    first_name = request.form.get("first_name")
+    last_name = request.form.get("last_name")
+    email = request.form.get("email")
+    password = request.form.get("password")
+    role_id = request.form.get("role_id")
+
+    try:
+        data = {
+            "first_name": first_name,
+            "last_name": last_name,
+            "email": email,
+            "role_id": int(role_id)
+        }
+
+        if password is not None and password != "":
+            data["password"] = password
+
+        response = requests.put(
+            f"{API_BASE_URL}/users/{user_id}",
+            json=data,
+            timeout=5
+        )
+
+        if response.status_code == 200:
+            flash("User blev opdateret")
+        else:
+            flash(f"User kunne ikke opdateres: {response.text}")
 
     except requests.exceptions.RequestException:
         flash("Kunne ikke forbinde til API-serveren")

@@ -11,52 +11,102 @@
 <div class="row g-4">
 
     <div class="col-12 col-lg-4">
-        <div class="card shadow-sm">
-            <div class="card-body">
+    <div class="card shadow-sm">
+        <div class="card-body">
 
+            {% if edit_user %}
+                <h2 class="h5 mb-3">Edit user</h2>
+                <form method="POST" action="{{ url_for('admin_update_user', user_id=edit_user['user_id']) }}">
+            {% else %}
                 <h2 class="h5 mb-3">Opret ny user</h2>
-
                 <form method="POST" action="{{ url_for('admin_create_user') }}">
+            {% endif %}
 
-                    <div class="mb-3">
-                        <label class="form-label">Fornavn</label>
-                        <input type="text" name="first_name" class="form-control" required>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label">Fornavn</label>
+                    <input 
+                        type="text" 
+                        name="first_name" 
+                        class="form-control" 
+                        value="{{ edit_user['first_name'] if edit_user else '' }}"
+                        required>
+                </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Efternavn</label>
-                        <input type="text" name="last_name" class="form-control" required>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label">Efternavn</label>
+                    <input 
+                        type="text" 
+                        name="last_name" 
+                        class="form-control" 
+                        value="{{ edit_user['last_name'] if edit_user else '' }}"
+                        required>
+                </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control" required>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input 
+                        type="email" 
+                        name="email" 
+                        class="form-control" 
+                        value="{{ edit_user['email'] if edit_user else '' }}"
+                        required>
+                </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <input type="password" name="password" class="form-control" required>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
 
-                    <div class="mb-3">
-                        <label class="form-label">Rolle</label>
-                        <select name="role_id" class="form-select" required>
-                            {% for role in roles %}
-                                <option value="{{ role['role_id'] }}">
-                                    {{ role['role_name'] }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    {% if edit_user %}
+                        <input 
+                            type="password" 
+                            name="password" 
+                            class="form-control"
+                            placeholder="Lad feltet være tomt for ikke at ændre password">
+                        <div class="form-text">
+                            Udfyld kun hvis password skal ændres.
+                        </div>
+                    {% else %}
+                        <input 
+                            type="password" 
+                            name="password" 
+                            class="form-control" 
+                            required>
+                    {% endif %}
+                </div>
 
+                <div class="mb-3">
+                    <label class="form-label">Rolle</label>
+                    <select name="role_id" class="form-select" required>
+                        {% for role in roles %}
+                            <option 
+                                value="{{ role['role_id'] }}"
+                                {% if edit_user and role['role_id'] == edit_user['role_id'] %}
+                                    selected
+                                {% endif %}>
+                                {{ role['role_name'] }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {% if edit_user %}
+                    <button type="submit" class="btn btn-warning w-100">
+                        Edit user
+                    </button>
+
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-secondary w-100 mt-2">
+                        Annuller edit
+                    </a>
+                {% else %}
                     <button type="submit" class="btn btn-primary w-100">
                         Opret user
                     </button>
-                </form>
+                {% endif %}
 
-            </div>
+            </form>
+
         </div>
     </div>
+</div>
 
     <div class="col-12 col-lg-8">
         <div class="card shadow-sm">
@@ -89,17 +139,25 @@
                                         </span>
                                     </td>
                                     <td>
-                                        {% if user["user_id"] != session["user_id"] %}
-                                            <form method="POST" action="{{ url_for('admin_delete_user', user_id=user['user_id']) }}">
-                                                <button type="submit" class="btn btn-danger btn-sm"
-                                                    onclick="return confirm('Er du sikker på at du vil slette denne user?')">
-                                                    Slet
-                                                </button>
-                                            </form>
-                                        {% else %}
-                                            <span class="badge bg-primary">Dig</span>
-                                        {% endif %}
-                                    </td>
+    <div class="d-flex gap-2">
+        <a 
+            href="{{ url_for('admin_users', edit_user_id=user['user_id']) }}" 
+            class="btn btn-warning btn-sm">
+            Edit
+        </a>
+
+        {% if user["user_id"] != session["user_id"] %}
+            <form method="POST" action="{{ url_for('admin_delete_user', user_id=user['user_id']) }}">
+                <button type="submit" class="btn btn-danger btn-sm"
+                    onclick="return confirm('Er du sikker på at du vil slette denne user?')">
+                    Slet
+                </button>
+            </form>
+        {% else %}
+            <span class="badge bg-primary align-self-center">Dig</span>
+        {% endif %}
+    </div>
+</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
