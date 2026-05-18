@@ -1,4 +1,5 @@
 from db import get_connection
+from services.file_service import delete_file
 
 
 def get_all_logs():
@@ -128,9 +129,26 @@ def delete_log(log_id):
         cur = conn.cursor()
 
         cur.execute("""
+            SELECT security_picture_path
+            FROM logging
+            WHERE log_id = ?
+        """, (log_id,))
+
+        row = cur.fetchone()
+
+        if row is None:
+            return False
+
+        security_picture_path = row["security_picture_path"]
+
+        cur.execute("""
             DELETE FROM logging
             WHERE log_id = ?
         """, (log_id,))
+
+        conn.commit()
+
+        delete_file(security_picture_path)
 
         conn.commit()
 

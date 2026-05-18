@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Faces{% endblock %}
+
+{% block content %}
+
+<h1 class="h3 mb-4">Admin - Faces</h1>
+
+<div class="row g-4">
+
+    <div class="col-12 col-lg-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            {% if edit_face %}
+                <h2 class="h5 mb-3">Edit face</h2>
+                <form method="POST" action="{{ url_for('admin_update_face', face_id=edit_face['face_id']) }}" enctype="multipart/form-data">
+            {% else %}
+                <h2 class="h5 mb-3">Opret ny face</h2>
+                <form method="POST" action="{{ url_for('admin_create_face') }}" enctype="multipart/form-data">
+            {% endif %}
+
+                <div class="mb-3">
+                    <label class="form-label">User ID</label>
+                    <input 
+                        type="number" 
+                        name="user_id" 
+                        class="form-control"
+                        value="{{ edit_face['user_id'] if edit_face else '' }}"
+                        {% if edit_face %}readonly{% else %}required{% endif %}>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Face Encoding</label>
+                    <input 
+                        type="text" 
+                        name="face_encoding" 
+                        class="form-control"
+                        value="{{ edit_face['face_encoding'] if edit_face and edit_face['face_encoding'] else '' }}">
+                </div>
+
+                <div class="form-check mb-3">
+                    <input 
+                        type="checkbox" 
+                        name="is_active" 
+                        value="true" 
+                        class="form-check-input" 
+                        id="faceActive"
+                        {% if edit_face and edit_face['is_active'] %}checked{% endif %}>
+                    <label class="form-check-label" for="faceActive">
+                        Aktiv
+                    </label>
+                </div>
+
+                {% if edit_face and edit_face['face_picture_path'] %}
+                    <div class="mb-3">
+                        <label class="form-label">Nuværende billede</label>
+                        <div>
+                            <a 
+                                href="{{ url_for('uploaded_file', filename=edit_face['face_picture_path'].replace('uploads/', '')) }}"
+                                target="_blank"
+                                class="btn btn-outline-secondary btn-sm">
+                                Se nuværende billede
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label class="form-label">Face Picture</label>
+                    <input 
+                        type="file" 
+                        name="face_picture" 
+                        accept="image/*" 
+                        class="form-control">
+                    {% if edit_face %}
+                        <div class="form-text">
+                            Vælg kun et nyt billede, hvis billedet skal ændres.
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+    <label class="form-label">Face Picture Path</label>
+    <input 
+        type="text" 
+        name="face_picture_path" 
+        class="form-control"
+        value="{{ edit_face['face_picture_path'] if edit_face and edit_face['face_picture_path'] else '' }}"
+        placeholder="uploads/faces/example.jpg">
+    
+    {% if edit_face %}
+        <div class="form-text">
+            Her kan du manuelt ændre pathen til billedet.
+        </div>
+    {% endif %}
+</div>
+
+                {% if edit_face %}
+                    <button type="submit" class="btn btn-warning w-100">
+                        Edit face
+                    </button>
+
+                    <a href="{{ url_for('admin_faces') }}" class="btn btn-secondary w-100 mt-2">
+                        Annuller edit
+                    </a>
+                {% else %}
+                    <button type="submit" class="btn btn-primary w-100">
+                        Opret face
+                    </button>
+                {% endif %}
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+    <div class="col-12 col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+
+                <h2 class="h5 mb-3">Alle faces</h2>
+
+                {% if faces %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>User ID</th>
+                                    <th>Encoding</th>
+                                    <th>Aktiv</th>
+                                    <th>Billede</th>
+                                    <th>Handling</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for face in faces %}
+                                <tr>
+                                    <td>{{ face["face_id"] }}</td>
+                                    <td>{{ face["user_id"] }}</td>
+
+                                    <td>
+                                        {% if face["face_encoding"] %}
+                                            <span class="badge bg-success">Ja</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Nej</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if face["is_active"] %}
+                                            <span class="badge bg-success">Aktiv</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Afventer</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if face["face_picture_path"] %}
+                                            <a
+                                             href="{{ url_for('uploaded_file', filename=face.face_picture_path.replace('uploads/', '')) }}"
+                                               target="_blank"
+                                               class="btn btn-outline-secondary btn-sm">
+                                                Se billede
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">Intet billede</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+    <div class="d-flex gap-2">
+        <a 
+            href="{{ url_for('admin_faces', edit_face_id=face['face_id']) }}" 
+            class="btn btn-warning btn-sm">
+            Edit
+        </a>
+
+            <form method="POST" action="{{ url_for('admin_delete_face', face_id=face['face_id']) }}">
+                <button type="submit" class="btn btn-danger btn-sm"
+                    onclick="return confirm('Er du sikker på at du vil slette dette facedata?')">
+                    Slet
+                </button>
+            </form>
+    </div>
+</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Ingen faces fundet.</p>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

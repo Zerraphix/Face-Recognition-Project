@@ -1,5 +1,5 @@
 from db import get_connection
-
+from services.security_service import hash_pass
 
 def create_tables():
     conn = None
@@ -92,11 +92,18 @@ def seed_data():
             ("Employee",),
             ("Guest",)
         ]
+        
+        user = ("Admin", "User", "admin@example.com", hash_pass("password"), 1)
 
         cur.executemany("""
             INSERT OR IGNORE INTO role (role_name)
             VALUES (?)
         """, roles)
+
+        cur.execute("""
+            INSERT OR IGNORE INTO user (first_name, last_name, email, password_hash, role_id)
+            VALUES (?, ?, ?, ?, ?)
+        """, user)
 
         conn.commit()
         print("Roles seeded successfully")

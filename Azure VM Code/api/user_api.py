@@ -5,7 +5,7 @@ from flask_restx import Namespace, Resource, fields
 
 
 from services.security_service import hash_pass, verify_pass
-from database.user_db import get_all_users, get_user_by_id, get_user_by_email, create_user, delete_user
+from database.user_db import get_all_users, get_user_by_id, get_user_by_email, create_user, delete_user, update_user
 
 
 api_user = Namespace("users", description="User operations")
@@ -16,7 +16,6 @@ user_model = api_user.model("User", {
     "first_name": fields.String,
     "last_name": fields.String,
     "email": fields.String,
-    "password_hash": fields.String,
     "role_id": fields.Integer,
     "role_name": fields.String
 })
@@ -28,6 +27,14 @@ create_user_model = api_user.model("CreateUser", {
     "email": fields.String(required=True, example="test@example.com"),
     "password_hash": fields.String(required=True, example="password"),
     "role_id": fields.Integer(required=True, example=1)
+})
+
+update_user_model = api_user.model("UpdateUser", {
+    "first_name": fields.String(required=False, example="Test"),
+    "last_name": fields.String(required=False, example="Testerson"),
+    "email": fields.String(required=False, example="test@example.com"),
+    "password_hash": fields.String(required=False, example="password"),
+    "role_id": fields.Integer(required=False, example=1)
 })
 
 
@@ -93,6 +100,39 @@ class UserById(Resource):
             api_user.abort(404, "User not found")
 
         return {"message": "User deleted"}, 200
+    
+    @api_user.expect(update_user_model)
+    @api_user.marshal_with(user_model, code=201)
+    def put(self, user_id):
+        data = request.get_json()
+
+        if data is None:
+            api_user.abort(400, "Missing JSON body")
+
+        try:
+            password_hash = None
+
+            if "password" in data:
+                if data["password"] is not None and data["password"] != "":
+                    password_hash = hash_pass(data["password"])
+
+            updated_user = update_user(
+                user_id=user_id,
+                first_name=data.get("first_name"),
+                last_name=data.get("last_name"),
+                email=data.get("email"),
+                password_hash=password_hash,
+                role_id=data.get("role_id")
+            )
+
+            if updated_user is None:
+                api_user.abort(404, "User not found")
+
+            return updated_user, 200
+
+        except Exception as e:
+            api_user.abort(400, str(e))
+        
     
 
 login_model = api_user.model("UserLogin", {
