@@ -462,6 +462,9 @@ def admin_delete_log(log_id):
 @admin_required
 def admin_faces():
     faces = []
+    edit_face = None
+
+    edit_face_id = request.args.get("edit_face_id")
 
     try:
         response = requests.get(
@@ -474,12 +477,24 @@ def admin_faces():
         else:
             flash("Kunne ikke hente faces fra API")
 
+        if edit_face_id:
+            edit_response = requests.get(
+                f"{API_BASE_URL}/faces/{edit_face_id}",
+                timeout=5
+            )
+
+            if edit_response.status_code == 200:
+                edit_face = edit_response.json()
+            else:
+                flash("Kunne ikke hente face til redigering")
+
     except requests.exceptions.RequestException:
         flash("Kunne ikke forbinde til API-serveren")
 
     return render_template(
         "admin_faces.html",
-        faces=faces
+        faces=faces,
+        edit_face=edit_face
     )
 
 
@@ -548,31 +563,33 @@ def admin_delete_face(face_id):
 
     return redirect(url_for("admin_faces"))
 
-@app.route("/faces/update/<int:face_id>", methods=["POST"])
-@login_required
-def update_face_image(face_id):
-    file = request.files.get("file")
-
-    if file is None or file.filename == "":
-        flash("Du skal vælge et billede")
-        return redirect(url_for("dashboard"))
+@app.route("/admin/faces/update/<int:face_id>", methods=["POST"])
+@admin_required
+def admin_update_face(face_id):
+    face_encoding = request.form.get("face_encoding")
+    is_active = request.form.get("is_active") == "true"
+    face_picture = request.files.get("face_picture")
 
     try:
-        is_active = is_admin()
-
         data = {
             "is_active": "true" if is_active else "false"
         }
 
-        files = {
-            "file": (
-                file.filename,
-                file.stream,
-                file.mimetype
-            )
-        }
+        if face_encoding is not None and face_encoding != "":
+            data["face_encoding"] = face_encoding
 
-        response = requests.patch(
+        files = None
+
+        if face_picture and face_picture.filename:
+            files = {
+                "file": (
+                    face_picture.filename,
+                    face_picture.stream,
+                    face_picture.mimetype
+                )
+            }
+
+        response = requests.put(
             f"{API_BASE_URL}/faces/{face_id}",
             data=data,
             files=files,
@@ -580,17 +597,14 @@ def update_face_image(face_id):
         )
 
         if response.status_code == 200:
-            if is_active:
-                flash("Face billede blev opdateret og aktiveret")
-            else:
-                flash("Face billede blev opdateret og afventer admin godkendelse")
+            flash("Face blev opdateret")
         else:
-            flash(f"Opdatering fejlede: {response.text}")
+            flash(f"Face kunne ikke opdateres: {response.text}")
 
-    except requests.exceptions.RequestException:
-        flash("Kunne ikke forbinde til API-serveren")
+    except requests.exceptions.RequestException as e:
+        flash(f"Kunne ikke forbinde til API-serveren: {e}")
 
-    return redirect(url_for("dashboard"))
+    return redirect(url_for("admin_faces"))
 
 # Admin pin routes
 @app.route("/admin/pins")
