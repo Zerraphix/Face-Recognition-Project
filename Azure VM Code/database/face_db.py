@@ -1,0 +1,253 @@
+from db import get_connection
+from services.file_service import delete_file
+
+
+def get_all_faces():
+    conn = None
+
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT 
+                facedata.face_id,
+                facedata.user_id,
+                user.first_name,
+                user.last_name,
+                user.email,
+                user.role_id,
+                role.role_name,
+                facedata.face_encoding,
+                facedata.face_picture_path,
+                facedata.created_at,
+                facedata.is_active
+            FROM facedata
+            INNER JOIN user ON facedata.user_id = user.user_id
+            INNER JOIN role ON user.role_id = role.role_id
+            ORDER BY facedata.created_at DESC
+        """)
+
+        rows = cur.fetchall()
+        return [dict(row) for row in rows]
+
+    finally:
+        if conn:
+            conn.close()
+
+
+def get_face_by_id(face_id):
+    conn = None
+
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT 
+                facedata.face_id,
+                facedata.user_id,
+                user.first_name,
+                user.last_name,
+                user.email,
+                user.role_id,
+                role.role_name,
+                facedata.face_encoding,
+                facedata.face_picture_path,
+                facedata.created_at,
+                facedata.is_active
+            FROM facedata
+            INNER JOIN user ON facedata.user_id = user.user_id
+            INNER JOIN role ON user.role_id = role.role_id
+            WHERE facedata.face_id = ?
+        """, (face_id,))
+
+        row = cur.fetchone()
+
+        if row is None:
+            return None
+
+        return dict(row)
+
+    finally:
+        if conn:
+            conn.close()
+
+                
+
+
+def create_face(user_id, face_encoding, face_picture_path, is_active):
+    conn = None
+
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            INSERT INTO facedata (
+                user_id,
+                face_encoding,
+                face_picture_path,
+                is_active
+            )
+            VALUES (?, ?, ?, ?)
+        """, (
+            user_id,
+            face_encoding,
+            face_picture_path,
+            is_active
+        ))
+
+        conn.commit()
+
+        new_face_id = cur.lastrowid
+        return get_face_by_id(new_face_id)
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+
+        raise e
+
+    finally:
+        if conn:
+            conn.close()
+
+
+def delete_face(face_id):
+    conn = None
+
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT face_picture_path
+            FROM facedata
+            WHERE face_id = ?
+        """, (face_id,))
+
+        row = cur.fetchone()
+
+        if row is None:
+            return False
+
+        face_picture_path = row["face_picture_path"]
+
+        cur.execute("""
+            DELETE FROM facedata
+            WHERE face_id = ?
+        """, (face_id,))
+
+        conn.commit()
+
+        delete_file(face_picture_path)
+
+        return cur.rowcount > 0
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+
+        raise e
+
+    finally:
+        if conn:
+            conn.close()
+            
+def get_faces_by_user_id(user_id):
+    conn = None
+
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT 
+                facedata.face_id,
+                facedata.user_id,
+                user.first_name,
+                user.last_name,
+                user.email,
+                user.role_id,
+                role.role_name,
+                facedata.face_encoding,
+                facedata.face_picture_path,
+                facedata.created_at,
+                facedata.is_active
+            FROM facedata
+            INNER JOIN user ON facedata.user_id = user.user_id
+            INNER JOIN role ON user.role_id = role.role_id
+            WHERE facedata.user_id = ?
+            ORDER BY facedata.created_at DESC
+        """, (user_id,))
+
+        rows = cur.fetchall()
+        return [dict(row) for row in rows]
+
+    finally:
+        if conn:
+            conn.close()
+
+
+def update_face(face_id, face_encoding=None, face_picture_path=None, is_active=None):
+    conn = None
+
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT user_id, face_picture_path
+            FROM facedata
+            WHERE face_id = ?
+        """, (face_id,))
+
+        row = cur.fetchone()
+
+        if row is None:
+            return None
+
+        user_id = row["user_id"]
+        old_face_picture_path = row["face_picture_path"]
+
+        fields = []
+        values = []
+
+        if face_encoding is not None:
+            fields.append("face_encoding = ?")
+            values.append(face_encoding)
+
+        if face_picture_path is not None:
+            fields.append("face_picture_path = ?")
+            values.append(face_picture_path)
+
+        if is_active is not None:
+            print("Updating is_active to:", is_active)
+            fields.append("is_active = ?")
+            values.append(is_active)
+
+        if not fields:
+            return get_face_by_id(face_id)
+
+        values.append(face_id)
+
+        cur.execute(f"""
+            UPDATE facedata
+            SET {", ".join(fields)}
+            WHERE face_id = ?
+        """, values)
+
+        conn.commit()
+
+        return get_face_by_id(face_id)
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+
+        raise e
+
+    finally:
+        if conn:
+            conn.close()

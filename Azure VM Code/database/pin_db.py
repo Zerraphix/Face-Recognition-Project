@@ -1,7 +1,7 @@
 from db import get_connection
 
 
-def get_all_users():
+def get_all_pins():
     conn = None
 
     try:
@@ -10,16 +10,20 @@ def get_all_users():
 
         cur.execute("""
             SELECT 
-                user.user_id,
+                pin.pin_id,
+                pin.user_id,
                 user.first_name,
                 user.last_name,
                 user.email,
-                user.password_hash,
                 user.role_id,
-                role.role_name
-            FROM user
+                role.role_name,
+                pin.pin_code_hash,
+                pin.expiration_time,
+                pin.is_active
+            FROM pin
+            INNER JOIN user ON pin.user_id = user.user_id
             INNER JOIN role ON user.role_id = role.role_id
-            ORDER BY user.user_id
+            ORDER BY pin.expiration_time DESC
         """)
 
         rows = cur.fetchall()
@@ -30,7 +34,8 @@ def get_all_users():
             conn.close()
 
 
-def get_user_by_id(user_id):
+
+def get_pin_by_id(pin_id):
     conn = None
 
     try:
@@ -39,17 +44,21 @@ def get_user_by_id(user_id):
 
         cur.execute("""
             SELECT 
-                user.user_id,
+                pin.pin_id,
+                pin.user_id,
                 user.first_name,
                 user.last_name,
                 user.email,
-                user.password_hash,
                 user.role_id,
-                role.role_name
-            FROM user
+                role.role_name,
+                pin.pin_code_hash,
+                pin.expiration_time,
+                pin.is_active
+            FROM pin
+            INNER JOIN user ON pin.user_id = user.user_id
             INNER JOIN role ON user.role_id = role.role_id
-            WHERE user.user_id = ?
-        """, (user_id,))
+            WHERE pin.pin_id = ?
+        """, (pin_id,))
 
         row = cur.fetchone()
 
@@ -61,9 +70,10 @@ def get_user_by_id(user_id):
     finally:
         if conn:
             conn.close()
+                
 
 
-def create_user(first_name, last_name, email, password_hash, role_id):
+def create_pin(user_id, pin_code_hash, expiration_time, is_active):
     conn = None
 
     try:
@@ -71,26 +81,24 @@ def create_user(first_name, last_name, email, password_hash, role_id):
         cur = conn.cursor()
 
         cur.execute("""
-            INSERT INTO user (
-                first_name,
-                last_name,
-                email,
-                password_hash,
-                role_id
+            INSERT INTO pin (
+                user_id,
+                pin_code_hash,
+                expiration_time,
+                is_active
             )
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?)
         """, (
-            first_name,
-            last_name,
-            email,
-            password_hash,
-            role_id
+            user_id,
+            pin_code_hash,
+            expiration_time,
+            is_active
         ))
 
         conn.commit()
 
-        new_user_id = cur.lastrowid
-        return get_user_by_id(new_user_id)
+        new_pin_id = cur.lastrowid
+        return get_pin_by_id(new_pin_id)
 
     except Exception as e:
         if conn:
@@ -103,7 +111,7 @@ def create_user(first_name, last_name, email, password_hash, role_id):
             conn.close()
 
 
-def delete_user(user_id):
+def delete_pin(pin_id):
     conn = None
 
     try:
@@ -111,9 +119,9 @@ def delete_user(user_id):
         cur = conn.cursor()
 
         cur.execute("""
-            DELETE FROM user
-            WHERE user_id = ?
-        """, (user_id,))
+            DELETE FROM pin
+            WHERE pin_id = ?
+        """, (pin_id,))
 
         conn.commit()
 

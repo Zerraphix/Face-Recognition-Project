@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="row g-4">
+
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="h3 mb-3">Dashboard</h1>
+
+                <p class="mb-1">
+                    <strong>Logget ind som:</strong> {{ session["email"] }}
+                </p>
+
+                <p class="mb-0">
+                    <strong>Rolle:</strong> {{ session["role_name"] }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+
+                <h2 class="h4 mb-3">Face data</h2>
+
+                {% if face %}
+                    {% if face.is_active %}
+                        <div class="alert alert-success">
+                            Du har aktiv face data registreret.
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            Dit face billede afventer admin godkendelse.
+                        </div>
+                    {% endif %}
+
+                    {% if face.face_picture_path %}
+                        <img
+                            src="{{ url_for('uploaded_file', filename=face.face_picture_path.replace('uploads/', '')) }}"
+                            alt="Face billede"
+                            class="img-fluid rounded border mb-3"
+                            style="max-width: 250px;"
+                        >
+                    {% endif %}
+
+                    <p class="text-muted mb-0">
+                        Oprettet: {{ face.created_at }}
+                    </p>
+
+                {% else %}
+                    <div class="alert alert-danger">
+                        Du har ingen face data endnu.
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+
+                <h2 class="h4 mb-3">
+                    {% if face %}
+                        Opdater ansigtsbillede
+                    {% else %}
+                        Upload ansigtsbillede
+                    {% endif %}
+                </h2>
+
+                {% if is_admin %}
+                    <p class="text-muted">
+                        Du er admin, så billedet bliver aktivt med det samme.
+                    </p>
+                {% else %}
+                    <p class="text-muted">
+                        Billedet skal godkendes af en admin, før det bliver aktivt.
+                    </p>
+                {% endif %}
+
+                <form method="POST" action="{{ url_for('upload_face') }}" enctype="multipart/form-data">
+                    {% if face %}
+                        <input type="hidden" name="face_id" value="{{ face.face_id }}">
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Ansigtsbillede</label>
+                        <input type="file" name="file" accept="image/*" class="form-control" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        {% if face %}
+                            Opdater billede
+                        {% else %}
+                            Upload billede
+                        {% endif %}
+                    </button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    {% if is_admin %}
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+
+                <h2 class="h4 mb-3">Admin Dashboard</h2>
+
+                <p class="text-muted">
+                    Du er admin, så du kan administrere systemets data.
+                </p>
+
+                <div class="row g-3">
+
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary w-100">
+                            Administrer users
+                        </a>
+                    </div>
+
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <a href="{{ url_for('admin_logs') }}" class="btn btn-outline-primary w-100">
+                            Administrer logs
+                        </a>
+                    </div>
+
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <a href="{{ url_for('admin_faces') }}" class="btn btn-outline-primary w-100">
+                            Administrer faces
+                        </a>
+                    </div>
+
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <a href="{{ url_for('admin_pins') }}" class="btn btn-outline-primary w-100">
+                            Administrer pins
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-secondary">
+            Du er logget ind, men du er ikke admin.
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}
