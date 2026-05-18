@@ -171,3 +171,76 @@ def delete_user(user_id):
     finally:
         if conn:
             conn.close()
+            
+def update_user(
+    user_id,
+    first_name=None,
+    last_name=None,
+    email=None,
+    password_hash=None,
+    role_id=None
+):
+    conn = None
+
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT user_id
+            FROM user
+            WHERE user_id = ?
+        """, (user_id,))
+
+        row = cur.fetchone()
+
+        if row is None:
+            return None
+
+        fields = []
+        values = []
+
+        if first_name is not None:
+            fields.append("first_name = ?")
+            values.append(first_name)
+
+        if last_name is not None:
+            fields.append("last_name = ?")
+            values.append(last_name)
+
+        if email is not None:
+            fields.append("email = ?")
+            values.append(email)
+
+        if password_hash is not None:
+            fields.append("password_hash = ?")
+            values.append(password_hash)
+
+        if role_id is not None:
+            fields.append("role_id = ?")
+            values.append(role_id)
+
+        if not fields:
+            return get_user_by_id(user_id)
+
+        values.append(user_id)
+
+        cur.execute(f"""
+            UPDATE user
+            SET {", ".join(fields)}
+            WHERE user_id = ?
+        """, values)
+
+        conn.commit()
+
+        return get_user_by_id(user_id)
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+
+        raise e
+
+    finally:
+        if conn:
+            conn.close()
