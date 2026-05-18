@@ -101,7 +101,7 @@ def seed_data():
         """, roles)
 
         cur.execute("""
-            INSERT OR IGNORE INTO user (first_name, last_name, email, password, role_id)
+            INSERT OR IGNORE INTO user (first_name, last_name, email, password_hash, role_id)
             VALUES (?, ?, ?, ?, ?)
         """, user)
 
