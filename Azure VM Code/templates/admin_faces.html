@@ -96,7 +96,8 @@
 
                                     <td>
                                         {% if face["face_picture_path"] %}
-                                            <a href="{{ url_for('static', filename=face['face_picture_path']) }}"
+                                            <a
+                                             href="{{ url_for('uploaded_file', filename=face.face_picture_path.replace('uploads/', '')) }}"
                                                target="_blank"
                                                class="btn btn-outline-secondary btn-sm">
                                                 Se billede
