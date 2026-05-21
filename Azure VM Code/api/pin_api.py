@@ -2,8 +2,8 @@ from flask import request
 from flask_restx import Namespace, Resource, fields
 
 
-from services.security_service import hash_pass
-from database.pin_db import get_all_pins, get_pin_by_id, create_pin, delete_pin
+from services.security_service import hash_pass, verify_pass
+from database.pin_db import get_active_pins, get_all_pins, get_pin_by_id, create_pin, delete_pin
 
 
 api_pin = Namespace("pins", description="Pin operations")
@@ -30,6 +30,19 @@ create_pin_model = api_pin.model("CreatePin", {
     "is_active": fields.Boolean(required=True, example=True)
 })
 
+
+
+verify_pin_model = api_pin.model("VerifyPin", {
+    "pin_code": fields.String(required=True, example="12345678")
+})
+
+
+verify_pin_response_model = api_pin.model("VerifyPinResponse", {
+    "approved": fields.Boolean,
+    "user_id": fields.Integer,
+    "pin_id": fields.Integer,
+    "result": fields.String
+})
 
 @api_pin.route("")
 class PinList(Resource):
@@ -92,3 +105,45 @@ class PinById(Resource):
 
         return {"message": "Pin deleted"}, 200
 
+@api_pin.route("/verify")
+class PinVerify(Resource):
+
+    @api_pin.expect(verify_pin_model)
+    @api_pin.marshal_with(verify_pin_response_model)
+    def post(self):
+        data = request.get_json()
+
+        if data is None:
+            api_pin.abort(400, "Missing JSON body")
+
+        pin_code = data.get("pin_code")
+
+        if not pin_code:
+            api_pin.abort(400, "Missing field: pin_code")
+
+        if not pin_code.isdigit():
+            api_pin.abort(400, "pin_code must only contain numbers")
+
+        try:
+            active_pins = get_active_pins()
+
+            for pin in active_pins:
+                pin_code_hash = pin["pin_code_hash"]
+
+                if verify_pass(pin_code, pin_code_hash):
+                    return {
+                        "approved": True,
+                        "user_id": pin["user_id"],
+                        "pin_id": pin["pin_id"],
+                        "result": "PIN accepted"
+                    }, 200
+
+            return {
+                "approved": False,
+                "user_id": None,
+                "pin_id": None,
+                "result": "Invalid, inactive or expired PIN"
+            }, 200
+
+        except Exception as e:
+            api_pin.abort(500, str(e))

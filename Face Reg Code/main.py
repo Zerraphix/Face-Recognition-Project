@@ -10,7 +10,8 @@ import time
 from api_client import login
 from face_loader import load_face_images_from_api
 from log_sender import send_log
-
+from backup_codes import get_active_backup_code_id, verify_active_backup_code
+from keypad import get_pin_code, setup_keypad
 
 KNOWN_FACES_DIR = "known_faces"
 CAPTURED_LOGS_DIR = "captured_logs"
@@ -132,6 +133,27 @@ def setup_camera():
     )
 
     picam2.start()
+
+def run_backup_mode():
+    active_id = get_active_backup_code_id()
+
+    if active_id is None:
+        print("Ingen backup-koder tilbage.")
+        return False
+
+    print(f"Backup ID: {active_id}")
+    print("Indtast 8-cifret backup PIN:")
+
+    backup_pin = get_pin_code(8)
+    
+    is_valid = verify_active_backup_code(backup_pin)
+
+    if is_valid:
+        print("Backup PIN godkendt.")
+        return True
+
+    print("Forkert backup PIN.")
+    return False
 
 
 def main():
