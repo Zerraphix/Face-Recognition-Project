@@ -1,5 +1,6 @@
 from flask import request
 from flask_restx import Namespace, Resource, fields
+from datetime import datetime
 
 
 from services.security_service import hash_pass, verify_pass
@@ -27,7 +28,7 @@ create_pin_model = api_pin.model("CreatePin", {
     "user_id": fields.Integer(required=True, example=1),
     "pin_code": fields.String(required=True, example="12345678"),
     "expires_at": fields.String(required=True, example="2023-12-31 23:59:59"),
-    "is_active": fields.Boolean(required=True, example=True)
+    "is_active": fields.String(required=True, example="true")
 })
 
 
@@ -44,6 +45,54 @@ verify_pin_response_model = api_pin.model("VerifyPinResponse", {
     "result": fields.String
 })
 
+def parse_expires_at(value):
+    if value is None:
+        api_pin.abort(400, "expires_at må ikke være None")
+
+    if not isinstance(value, str):
+        api_pin.abort(400, "expires_at skal være en string")
+
+    value = value.strip()
+
+    if value == "" or value.lower() == "none":
+        api_pin.abort(400, "expires_at må ikke være tom eller None")
+
+    accepted_formats = [
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%dT%H:%M",
+        "%Y-%m-%dT%H:%M:%S",
+        "%Y-%m-%d"
+    ]
+
+    for date_format in accepted_formats:
+        try:
+            parsed_date = datetime.strptime(value, date_format)
+
+            # Hvis man kun sender dato, sæt udløb til slutningen af dagen
+            if date_format == "%Y-%m-%d":
+                parsed_date = parsed_date.replace(hour=23, minute=59, second=59)
+
+            # SQLite-venligt format
+            return parsed_date.strftime("%Y-%m-%d %H:%M:%S")
+
+        except ValueError:
+            pass
+
+    api_pin.abort(
+        400,
+        "Invalid expires_at format. Brug fx '2026-12-31 23:59:59' eller HTML datetime-local format '2026-12-31T23:59'"
+    )
+
+def convert_is_active(value):
+    if value == "true":
+        return True
+
+    if value == "false":
+        return False
+
+    else:
+        return False
+    
 @api_pin.route("")
 class PinList(Resource):
 
@@ -57,6 +106,9 @@ class PinList(Resource):
     def post(self):
         data = request.get_json()
 
+        if data is None:
+            api_pin.abort(400, "Missing JSON body")
+
         required_fields = [
             "user_id",
             "pin_code",
@@ -69,13 +121,14 @@ class PinList(Resource):
                 api_pin.abort(400, f"Missing field: {field}")
 
         try:
+            expires_at = parse_expires_at(data["expires_at"])
             pin_code_hash = hash_pass(data["pin_code"])
 
             new_pin = create_pin(
                 data["user_id"],
                 pin_code_hash,
-                data["expires_at"],
-                data["is_active"]
+                expires_at,
+                convert_is_active(data["is_active"])
             )
 
             return new_pin, 201

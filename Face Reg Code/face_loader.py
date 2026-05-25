@@ -77,7 +77,8 @@ def load_face_images_from_api():
                 "first_name": face.get("first_name"),
                 "last_name": face.get("last_name"),
                 "email": face.get("email"),
-                "image_path": str(local_path)
+                "image_path": str(local_path),
+                "role_name": face.get("role_name")
             })
 
             print(f"Hentede billede for user_id {user_id}: {local_path}")
