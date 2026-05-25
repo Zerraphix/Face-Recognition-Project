@@ -7,132 +7,172 @@
 <div class="row g-4">
 
     <div class="col-12">
-    <div class="card shadow-sm">
-        <div class="card-body">
+        <div class="card shadow-sm">
+            <div class="card-body">
 
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <h1 class="h3 mb-3">Dashboard</h1>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h1 class="h3 mb-3">Dashboard</h1>
 
-                    <p class="mb-1">
-                        <strong>Navn:</strong>
-                        {{ session["first_name"] }} {{ session["last_name"] }}
-                    </p>
+                        <p class="mb-1">
+                            <strong>Navn:</strong>
+                            {{ session["first_name"] }} {{ session["last_name"] }}
+                        </p>
 
-                    <p class="mb-1">
-                        <strong>Email:</strong> {{ session["email"] }}
-                    </p>
+                        <p class="mb-1">
+                            <strong>Email:</strong> {{ session["email"] }}
+                        </p>
 
-                    <p class="mb-0">
-                        <strong>Rolle:</strong> {{ session["role_name"] }}
-                    </p>
-                </div>
-
-                <button
-                    class="btn btn-outline-secondary"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#userSettings"
-                    aria-expanded="false"
-                    aria-controls="userSettings"
-                    title="Settings"
-                >
-                    ⚙️
-                </button>
-            </div>
-
-            <div class="collapse mt-4" id="userSettings">
-                <hr>
-
-                <div class="row g-4">
-
-                    <div class="col-12 col-lg-6">
-                        <h2 class="h5 mb-3">Profil settings</h2>
-
-                        <form method="POST" action="{{ url_for('update_own_settings') }}">
-                            <div class="mb-3">
-                                <label class="form-label">Fornavn</label>
-                                <input
-                                    type="text"
-                                    name="first_name"
-                                    class="form-control"
-                                    value="{{ session['first_name'] }}"
-                                    required
-                                >
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Efternavn</label>
-                                <input
-                                    type="text"
-                                    name="last_name"
-                                    class="form-control"
-                                    value="{{ session['last_name'] }}"
-                                    required
-                                >
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Ny adgangskode</label>
-                                <input
-                                    type="password"
-                                    name="password"
-                                    class="form-control"
-                                    placeholder="Lad feltet være tomt for ikke at ændre password"
-                                >
-                            </div>
-
-                            <button type="submit" class="btn btn-primary">
-                                Gem profil
-                            </button>
-                        </form>
+                        <p class="mb-0">
+                            <strong>Rolle:</strong> {{ session["role_name"] }}
+                        </p>
                     </div>
 
-                    <div class="col-12 col-lg-6">
-                        <h2 class="h5 mb-3">
-                            {% if face %}
-                                Opdater ansigtsbillede
-                            {% else %}
-                                Upload ansigtsbillede
-                            {% endif %}
-                        </h2>
+                    <button
+                        class="btn btn-outline-secondary"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#userSettings"
+                        aria-expanded="false"
+                        aria-controls="userSettings"
+                        title="Settings"
+                    >
+                        <i class="bi bi-gear-fill"></i>
+                    </button>
+                </div>
 
-                        {% if is_admin %}
-                            <p class="text-muted">
-                                Du er admin, så billedet bliver aktivt med det samme.
-                            </p>
-                        {% else %}
-                            <p class="text-muted">
-                                Billedet skal godkendes af en admin, før det bliver aktivt.
-                            </p>
-                        {% endif %}
+                <div class="collapse mt-4" id="userSettings">
+                    <hr>
 
-                        <form method="POST" action="{{ url_for('upload_face') }}" enctype="multipart/form-data">
-                            {% if face %}
-                                <input type="hidden" name="face_id" value="{{ face.face_id }}">
-                            {% endif %}
+                    <div class="row g-4">
 
-                            <div class="mb-3">
-                                <label class="form-label">Ansigtsbillede</label>
-                                <input type="file" name="file" accept="image/*" class="form-control" required>
-                            </div>
+                        <div class="col-12 col-lg-6">
+                            <h2 class="h5 mb-3">Profil settings</h2>
 
-                            <button type="submit" class="btn btn-primary">
+                            <form method="POST" action="{{ url_for('update_own_settings') }}">
+                                <div class="mb-3">
+                                    <label class="form-label">Fornavn</label>
+                                    <input
+                                        type="text"
+                                        name="first_name"
+                                        class="form-control"
+                                        value="{{ session['first_name'] }}"
+                                        required
+                                    >
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Efternavn</label>
+                                    <input
+                                        type="text"
+                                        name="last_name"
+                                        class="form-control"
+                                        value="{{ session['last_name'] }}"
+                                        required
+                                    >
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Ny adgangskode</label>
+                                    <input
+                                        type="password"
+                                        name="password"
+                                        class="form-control"
+                                        placeholder="Lad feltet være tomt for ikke at ændre password"
+                                    >
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">
+                                    Gem profil
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="col-12 col-lg-6">
+                            <h2 class="h5 mb-3">
                                 {% if face %}
-                                    Opdater billede
+                                    Opdater ansigtsbillede
                                 {% else %}
-                                    Upload billede
+                                    Upload ansigtsbillede
                                 {% endif %}
-                            </button>
-                        </form>
+                            </h2>
+
+                            {% if is_admin %}
+                                <p class="text-muted">
+                                    Du er admin, så billedet bliver aktivt med det samme.
+                                </p>
+                            {% else %}
+                                <p class="text-muted">
+                                    Billedet skal godkendes af en admin, før det bliver aktivt.
+                                </p>
+                            {% endif %}
+
+                            <form method="POST" action="{{ url_for('upload_face') }}" enctype="multipart/form-data">
+                                {% if face %}
+                                    <input type="hidden" name="face_id" value="{{ face.face_id }}">
+                                {% endif %}
+
+                                <div class="mb-3">
+                                    <label class="form-label">Ansigtsbillede</label>
+                                    <input type="file" name="file" accept="image/*" class="form-control" required>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">
+                                    {% if face %}
+                                        Opdater billede
+                                    {% else %}
+                                        Upload billede
+                                    {% endif %}
+                                </button>
+                            </form>
+                        </div>
+
                     </div>
-
                 </div>
-            </div>
 
+            </div>
         </div>
     </div>
-</div>
+
+    <div class="col-12 col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+
+                <h2 class="h4 mb-3">Face data</h2>
+
+                {% if face %}
+                    {% if face.is_active %}
+                        <div class="alert alert-success">
+                            Du har aktiv face data registreret.
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            Dit face billede afventer admin godkendelse.
+                        </div>
+                    {% endif %}
+
+                    {% if face.face_picture_path %}
+                        <img
+                            src="{{ url_for('uploaded_file', filename=face.face_picture_path.replace('uploads/', '')) }}"
+                            alt="Face billede"
+                            class="img-fluid rounded border mb-3"
+                            style="max-width: 250px;"
+                        >
+                    {% endif %}
+
+                    <p class="text-muted mb-0">
+                        Oprettet: {{ face.created_at }}
+                    </p>
+
+                {% else %}
+                    <div class="alert alert-danger">
+                        Du har ingen face data endnu.
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
 
     {% if is_admin %}
     <div class="col-12">
