@@ -187,7 +187,7 @@ def setup_online_mode():
 
 def handle_face_match(user, frame):
     user_id = user["user_id"]
-    role_name = user.get("role_name")
+    role_name = user["role_name"]
 
     cooldown_key = f"face_{user_id}"
 
