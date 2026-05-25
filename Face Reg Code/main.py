@@ -250,13 +250,16 @@ def keypad_loop():
                 pin_code = get_pin_code(8)
 
                 result = verify_pin(pin_code)
+                
+                image_path = save_log_image(frame)
 
                 if not result.get("approved"):
                     send_access_log(
                         user_id=UNKNOWN_USER_ID,
                         method="PIN",
                         access_granted=False,
-                        result="Invalid PIN"
+                        result="Invalid PIN",
+                        image_path=image_path
                     )
 
                     access_denied_message("Forkert PIN")
@@ -270,7 +273,8 @@ def keypad_loop():
                         user_id=user_id,
                         method="PIN",
                         access_granted=True,
-                        result=f"Access granted by PIN. Role: {role_name}"
+                        result=f"Access granted by PIN. Role: {role_name}",
+                        image_path=image_path
                     )
 
                     access_granted_message("PIN godkendt")
@@ -280,7 +284,8 @@ def keypad_loop():
                         user_id=user_id,
                         method="PIN",
                         access_granted=False,
-                        result=f"PIN valid, but role denied. Role: {role_name}"
+                        result=f"PIN valid, but role denied. Role: {role_name}",
+                        image_path=image_path
                     )
 
                     access_denied_message("Rolle afvist")
@@ -324,6 +329,7 @@ def camera_loop():
     print("Kamera startet. Tryk Q for at stoppe.")
 
     while running:
+        global frame
         frame = picam2.capture_array()
 
         if api_online and len(known_face_encodings) > 0:

@@ -150,8 +150,11 @@ def get_active_pins():
                 pin.user_id,
                 pin.pin_code_hash,
                 pin.expires_at,
-                pin.is_active
+                pin.is_active,
+                role.role_name
             FROM pin
+            INNER JOIN user ON pin.user_id = user.user_id
+            INNER JOIN role ON user.role_id = role.role_id
             WHERE pin.is_active = 1
         """, ())
 

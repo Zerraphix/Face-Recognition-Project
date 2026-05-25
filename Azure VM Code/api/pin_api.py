@@ -42,7 +42,8 @@ verify_pin_response_model = api_pin.model("VerifyPinResponse", {
     "approved": fields.Boolean,
     "user_id": fields.Integer,
     "pin_id": fields.Integer,
-    "result": fields.String
+    "result": fields.String,
+    "role_name": fields.String
 })
 
 def parse_expires_at(value):
@@ -188,14 +189,16 @@ class PinVerify(Resource):
                         "approved": True,
                         "user_id": pin["user_id"],
                         "pin_id": pin["pin_id"],
-                        "result": "PIN accepted"
+                        "result": "PIN accepted",
+                        "role_name": pin["role_name"]
                     }, 200
 
             return {
                 "approved": False,
                 "user_id": None,
                 "pin_id": None,
-                "result": "Invalid, inactive or expired PIN"
+                "result": "Invalid, inactive or expired PIN",
+                "role_name": None
             }, 200
 
         except Exception as e:
