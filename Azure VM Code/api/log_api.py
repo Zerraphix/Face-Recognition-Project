@@ -31,13 +31,22 @@ create_log_parser = reqparse.RequestParser()
 create_log_parser.add_argument("user_id", type=int, required=True, location="form")
 create_log_parser.add_argument("device", type=str, required=True, location="form")
 create_log_parser.add_argument("used_method", type=str, required=True, location="form")
-create_log_parser.add_argument("access_granted", type=bool, required=True, location="form")
+create_log_parser.add_argument("access_granted", type=str, required=True, location="form")
 create_log_parser.add_argument("result", type=str, required=True, location="form")
 create_log_parser.add_argument("security_picture_path", type=str, required=False, location="form")
 create_log_parser.add_argument("file", type=FileStorage, required=False, location="files")
 
 
+def convert_is_active(value):
+    if value == "true":
+        return True
 
+    if value == "false":
+        return False
+
+    else:
+        return False
+    
 @api_log.route("")
 class LogList(Resource):
 
@@ -54,7 +63,7 @@ class LogList(Resource):
         user_id = args["user_id"]
         device = args["device"]
         used_method = args["used_method"]
-        access_granted = args["access_granted"]
+        access_granted = convert_is_active(args["access_granted"])
         result = args["result"]
         security_picture_path = args.get("security_picture_path")
         file = args["file"]

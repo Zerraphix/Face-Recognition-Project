@@ -146,13 +146,13 @@ def get_active_pins():
 
         cur.execute("""
             SELECT 
-                pins.pin_id,
-                pins.user_id,
-                pins.pin_code_hash,
-                pins.expires_at,
-                pins.is_active
-            FROM pins
-            WHERE pins.is_active = 1
+                pin.pin_id,
+                pin.user_id,
+                pin.pin_code_hash,
+                pin.expires_at,
+                pin.is_active
+            FROM pin
+            WHERE pin.is_active = 1
         """, ())
 
         rows = cur.fetchall()
