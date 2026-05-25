@@ -149,7 +149,7 @@ def get_active_pins():
                 pin.pin_id,
                 pin.user_id,
                 pin.pin_code_hash,
-                pin.expires_at,
+                pin.expiration_time,
                 pin.is_active,
                 role.role_name
             FROM pin
