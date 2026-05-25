@@ -18,23 +18,6 @@ app.secret_key = "change_this_secret_key"
 API_BASE_URL = "http://127.0.0.1:5000/api"
 
 
-# API setup
-api = Api(
-    app,
-    title="Face Access API",
-    version="1.0",
-    description="API til ansigtsgenkendelse og adgangskontrol",
-    doc="/docs"
-)
-
-api.add_namespace(api_role, path="/api/roles")
-api.add_namespace(api_user, path="/api/users")
-api.add_namespace(api_log, path="/api/logs")
-api.add_namespace(api_face, path="/api/faces")
-api.add_namespace(api_pin, path="/api/pins")
-
-
-
 # Login helpers
 def is_logged_in():
     return session.get("logged_in") is True
@@ -69,13 +52,32 @@ def admin_required(route_function):
 
     return wrapper
 
-# Website routes
+
+# Website root skal registreres før Flask-RESTX API
 @app.route("/")
 def home():
+    print("HOME ROUTE HIT")
+
     if is_logged_in():
         return redirect(url_for("dashboard"))
 
     return redirect(url_for("login"))
+
+
+# API setup
+api = Api(
+    app,
+    title="Face Access API",
+    version="1.0",
+    description="API til ansigtsgenkendelse og adgangskontrol",
+    doc="/docs"
+)
+
+api.add_namespace(api_role, path="/api/roles")
+api.add_namespace(api_user, path="/api/users")
+api.add_namespace(api_log, path="/api/logs")
+api.add_namespace(api_face, path="/api/faces")
+api.add_namespace(api_pin, path="/api/pins")
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -184,7 +186,7 @@ def upload_face():
         }
 
         if face_id:
-            response = requests.patch(
+            response = requests.put(
                 f"{API_BASE_URL}/faces/{face_id}",
                 data=data,
                 files=files,
