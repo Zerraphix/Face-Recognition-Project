@@ -212,6 +212,43 @@ def upload_face():
 
     return redirect(url_for("dashboard"))
 
+@app.route("/settings/update", methods=["POST"])
+@login_required
+def update_own_settings():
+    first_name = request.form.get("first_name")
+    last_name = request.form.get("last_name")
+    password = request.form.get("password")
+
+    try:
+        data = {
+            "first_name": first_name,
+            "last_name": last_name,
+            "email": session["email"],
+            "role_id": int(session["role_id"])
+        }
+
+        if password is not None and password != "":
+            data["password"] = password
+
+        response = requests.put(
+            f"{API_BASE_URL}/users/{session['user_id']}",
+            json=data,
+            timeout=5
+        )
+
+        if response.status_code == 200:
+            session["first_name"] = first_name
+            session["last_name"] = last_name
+
+            flash("Dine settings blev opdateret")
+        else:
+            flash(f"Dine settings kunne ikke opdateres: {response.text}")
+
+    except requests.exceptions.RequestException:
+        flash("Kunne ikke forbinde til API-serveren")
+
+    return redirect(url_for("dashboard"))
+
 
 @app.route("/logout")
 def logout():
