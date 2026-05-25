@@ -40,6 +40,17 @@ def get_faces():
     response.raise_for_status()
     return response.json()
 
+def verify_pin(pin_code):
+    response = requests.post(
+        f"{API_BASE_URL}/pins/verify",
+        json={
+            "pin_code": pin_code
+        },
+        timeout=10
+    )
+
+    response.raise_for_status()
+    return response.json()
 
 def get_image_url(path):
     if path.startswith("http"):

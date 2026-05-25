@@ -136,3 +136,28 @@ def delete_pin(pin_id):
     finally:
         if conn:
             conn.close()
+            
+def get_active_pins():
+    conn = None
+
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT 
+                pin.pin_id,
+                pin.user_id,
+                pin.pin_code_hash,
+                pin.expires_at,
+                pin.is_active
+            FROM pin
+            WHERE pin.is_active = 1
+        """, ())
+
+        rows = cur.fetchall()
+        return [dict(row) for row in rows]
+
+    finally:
+        if conn:
+            conn.close()
