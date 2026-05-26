@@ -255,7 +255,7 @@ def keypad_loop():
 
                 if not result.get("approved"):
                     send_access_log(
-                        user_id=UNKNOWN_USER_ID,
+                        user_id=1,
                         method="PIN",
                         access_granted=False,
                         result="Invalid PIN",
