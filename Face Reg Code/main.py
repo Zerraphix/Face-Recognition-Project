@@ -303,8 +303,10 @@ def keypad_loop():
                 backup_pin = get_pin_code(8)
 
                 if verify_active_backup_code(backup_pin):
+                    save_log_image(frame)
                     access_granted_message("Backup godkendt")
                 else:
+                    save_log_image(frame)
                     access_denied_message("Backup afvist")
 
         except Exception as e:
