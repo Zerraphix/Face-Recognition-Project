@@ -396,14 +396,14 @@ def camera_loop():
                     1
                 )
 
-        cv2.imshow("Face recognition test", frame)
+        '''cv2.imshow("Face recognition test", frame)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             running = False
-            break
+            break'''
 
     picam2.stop()
-    cv2.destroyAllWindows()
+    #cv2.destroyAllWindows()
 
 def main():
     global running
