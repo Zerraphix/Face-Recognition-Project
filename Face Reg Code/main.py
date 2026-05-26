@@ -49,6 +49,8 @@ last_logged_times = {}
 api_online = False
 running = True
 
+USE_GUI = os.environ.get("DISPLAY") is not None or os.environ.get("WAYLAND_DISPLAY") is not None
+
 picam2 = Picamera2()
 
 def ensure_folders():
@@ -396,14 +398,16 @@ def camera_loop():
                     1
                 )
 
-        '''cv2.imshow("Face recognition test", frame)
+        if USE_GUI:
+            cv2.imshow("Face recognition test", frame)
 
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            running = False
-            break'''
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                running = False
+                break
 
     picam2.stop()
-    #cv2.destroyAllWindows()
+    if USE_GUI:
+        cv2.destroyAllWindows()
 
 def main():
     global running
