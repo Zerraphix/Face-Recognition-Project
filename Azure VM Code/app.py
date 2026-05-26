@@ -685,7 +685,7 @@ def admin_create_pin():
             "user_id": user_id,
             "pin_code": pin_code,
             "expires_at": expiry_date,
-            "is_active": is_active
+            "is_active": str(is_active)
         }
 
 
