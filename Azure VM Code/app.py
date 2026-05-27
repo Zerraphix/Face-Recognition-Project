@@ -18,7 +18,7 @@ app.secret_key = "change_this_secret_key"
 API_BASE_URL = "http://127.0.0.1:5000/api"
 
 
-# Login helpers
+# Route helpers
 def is_logged_in():
     return session.get("logged_in") is True
 
@@ -53,7 +53,6 @@ def admin_required(route_function):
     return wrapper
 
 
-# Website root skal registreres før Flask-RESTX API
 @app.route("/")
 def home():
     print("HOME ROUTE HIT")
@@ -685,7 +684,7 @@ def admin_create_pin():
             "user_id": user_id,
             "pin_code": pin_code,
             "expires_at": expiry_date,
-            "is_active": is_active
+            "is_active": str(is_active)
         }
 
 

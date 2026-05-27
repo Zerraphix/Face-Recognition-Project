@@ -49,6 +49,8 @@ last_logged_times = {}
 api_online = False
 running = True
 
+USE_GUI = os.environ.get("DISPLAY") is not None or os.environ.get("WAYLAND_DISPLAY") is not None
+
 picam2 = Picamera2()
 
 def ensure_folders():
@@ -250,13 +252,16 @@ def keypad_loop():
                 pin_code = get_pin_code(8)
 
                 result = verify_pin(pin_code)
+                
+                image_path = save_log_image(frame)
 
                 if not result.get("approved"):
                     send_access_log(
-                        user_id=UNKNOWN_USER_ID,
+                        user_id=1,
                         method="PIN",
                         access_granted=False,
-                        result="Invalid PIN"
+                        result="Invalid PIN",
+                        image_path=image_path
                     )
 
                     access_denied_message("Forkert PIN")
@@ -270,7 +275,8 @@ def keypad_loop():
                         user_id=user_id,
                         method="PIN",
                         access_granted=True,
-                        result=f"Access granted by PIN. Role: {role_name}"
+                        result=f"Access granted by PIN. Role: {role_name}",
+                        image_path=image_path
                     )
 
                     access_granted_message("PIN godkendt")
@@ -280,7 +286,8 @@ def keypad_loop():
                         user_id=user_id,
                         method="PIN",
                         access_granted=False,
-                        result=f"PIN valid, but role denied. Role: {role_name}"
+                        result=f"PIN valid, but role denied. Role: {role_name}",
+                        image_path=image_path
                     )
 
                     access_denied_message("Rolle afvist")
@@ -298,8 +305,10 @@ def keypad_loop():
                 backup_pin = get_pin_code(8)
 
                 if verify_active_backup_code(backup_pin):
+                    save_log_image(frame)
                     access_granted_message("Backup godkendt")
                 else:
+                    save_log_image(frame)
                     access_denied_message("Backup afvist")
 
         except Exception as e:
@@ -324,6 +333,7 @@ def camera_loop():
     print("Kamera startet. Tryk Q for at stoppe.")
 
     while running:
+        global frame
         frame = picam2.capture_array()
 
         if api_online and len(known_face_encodings) > 0:
@@ -388,14 +398,16 @@ def camera_loop():
                     1
                 )
 
-        cv2.imshow("Face recognition test", frame)
+        if USE_GUI:
+            cv2.imshow("Face recognition test", frame)
 
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            running = False
-            break
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                running = False
+                break
 
     picam2.stop()
-    cv2.destroyAllWindows()
+    if USE_GUI:
+        cv2.destroyAllWindows()
 
 def main():
     global running

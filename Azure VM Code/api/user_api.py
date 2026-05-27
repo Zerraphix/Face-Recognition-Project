@@ -1,6 +1,4 @@
 from flask import request
-# https://flask-restx.readthedocs.io/en/latest/swagger.html Bedre visuel api dokumentation
-# https://flask-restx.readthedocs.io/en/latest/scaling.html#multiple-namespaces Deler dem op i flere filer alligvel og samler dem i app.py
 from flask_restx import Namespace, Resource, fields
 
 

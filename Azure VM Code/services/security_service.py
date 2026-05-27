@@ -1,4 +1,3 @@
-# https://www.geeksforgeeks.org/python/hashing-passwords-in-python-with-bcrypt/
 import bcrypt
 
 

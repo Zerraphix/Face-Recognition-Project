@@ -1,5 +1,4 @@
 from flask import request
-# https://flask-restx.readthedocs.io/en/latest/parsing.html Brugt til formdata parsing, især til fil uploads
 from flask_restx import Namespace, Resource, fields, reqparse
 from werkzeug.datastructures import FileStorage
 
