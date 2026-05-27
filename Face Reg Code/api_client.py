@@ -28,7 +28,6 @@ def login():
     print("Login status:", response.status_code)
     print("Efter login URL:", response.url)
 
-    # Simpel check: hvis vi stadig ser login-siden, fejlede login nok
     if "<title>Login</title>" in response.text:
         raise ValueError("Login fejlede. Tjek email/password.")
 

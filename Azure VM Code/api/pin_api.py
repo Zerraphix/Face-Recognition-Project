@@ -69,11 +69,9 @@ def parse_expires_at(value):
         try:
             parsed_date = datetime.strptime(value, date_format)
 
-            # Hvis man kun sender dato, sæt udløb til slutningen af dagen
             if date_format == "%Y-%m-%d":
                 parsed_date = parsed_date.replace(hour=23, minute=59, second=59)
 
-            # SQLite-venligt format
             return parsed_date.strftime("%Y-%m-%d %H:%M:%S")
 
         except ValueError:

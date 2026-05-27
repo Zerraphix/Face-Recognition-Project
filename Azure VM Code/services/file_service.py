@@ -47,11 +47,9 @@ def delete_file(file_path):
 
     path = Path(file_path)
 
-    # Hvis databasen gemmer /uploads/faces/image.jpg
     if file_path.startswith("/"):
         path = Path("static") / file_path.lstrip("/")
 
-    # Hvis databasen gemmer uploads/faces/image.jpg uden static foran
     elif not str(path).startswith("static"):
         possible_static_path = Path("static") / path
 
